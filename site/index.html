@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentHook · The open hook standard for EU AI Act compliance</title>
+<meta name="description" content="AgentHook is the open specification for the lifecycle hooks AI agent runtimes must expose so operators, auditors, and regulators can record what an agent did, when, why, and with what reasoning. Apache 2.0. Stewardship by Agentic Thinking Limited (UK). EU AI Act Article 12 enforceable from 2 August 2026.">
+<link rel="canonical" href="https://agenthook.org/">
+<meta property="og:title" content="AgentHook · The open hook standard for EU AI Act compliance">
+<meta property="og:description" content="An open specification for the lifecycle hooks every AI agent runtime should expose. Apache 2.0. Stewardship by Agentic Thinking Limited (UK).">
+<meta property="og:url" content="https://agenthook.org/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://agenthook.org/assets/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f7f9fc;
+  --bg-card: #ffffff;
+  --border: #e3e8f0;
+  --border-strong: #c9d2e0;
+  --navy: #0a1f44;
+  --navy-soft: #1a2c52;
+  --teal: #1fa9a0;
+  --emerald: #2ecc71;
+  --emerald-deep: #1ea65a;
+  --emerald-bg: rgba(46,204,113,0.08);
+  --emerald-border: rgba(46,204,113,0.30);
+  --amber: #b87a14;
+  --amber-bg: rgba(184,122,20,0.07);
+  --amber-border: rgba(184,122,20,0.28);
+  --red: #c1272d;
+  --red-bg: rgba(193,39,45,0.05);
+  --red-border: rgba(193,39,45,0.24);
+  --eu-blue: #003399;
+  --eu-gold: #ffcc00;
+  --text: #1a2332;
+  --text-soft: #3d4961;
+  --text-dim: #6b768c;
+  --text-muted: #93a0b5;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+html { scroll-behavior: smooth; overflow-x: hidden; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.65; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+a { color: var(--emerald-deep); text-decoration: none; transition: opacity .15s; }
+a:hover { opacity: .75; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.section-label { font-family: var(--mono); font-size: .72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 14px; font-weight: 600; }
+.section-title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-weight: 700; color: var(--navy); margin-bottom: 16px; line-height: 1.2; letter-spacing: -0.01em; }
+.section-text { font-size: 1.02rem; color: var(--text-soft); max-width: 780px; margin-bottom: 24px; }
+code { font-family: var(--mono); background: var(--bg-alt); padding: 2px 6px; border-radius: 3px; color: var(--navy); font-size: 0.92em; border: 1px solid var(--border); }
+section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+
+/* NAV */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255,255,255,0.96); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); padding: 10px 0; }
+nav .container { display: flex; justify-content: space-between; align-items: center; }
+nav .logo { font-family: var(--mono); font-weight: 700; font-size: 0.92rem; color: var(--navy); letter-spacing: 1.5px; display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+nav .logo img { height: 48px; display: block; flex-shrink: 0; }
+@media (max-width: 720px) { nav .logo img { height: 40px; } nav .logo { font-size: 0.78rem; letter-spacing: 1px; gap: 10px; } }
+nav .nav-links { display: flex; gap: 24px; align-items: center; }
+nav .nav-links a { color: var(--text-soft); font-size: .86rem; font-weight: 500; }
+nav .nav-links a:hover { color: var(--navy); opacity: 1; }
+nav .nav-cta { background: var(--navy); color: #ffffff !important; padding: 8px 16px; border-radius: 4px; font-weight: 600; font-size: .82rem; }
+nav .nav-cta:hover { background: var(--navy-soft); opacity: 1; }
+nav .hamburger { display: none; background: var(--bg-alt); border: 1px solid var(--border); color: var(--navy); padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 1.25rem; line-height: 1; align-items: center; justify-content: center; }
+@media (max-width: 820px) {
+  nav .container { flex-wrap: wrap; }
+  nav .hamburger { display: inline-flex; }
+  nav .nav-links { display: none; flex-direction: column; align-items: stretch; width: 100%; order: 3; padding: 14px 0 4px; margin-top: 12px; border-top: 1px solid var(--border); gap: 4px; }
+  nav .nav-links.open { display: flex; }
+  nav .nav-links a.desktop { display: block; padding: 12px 4px; font-size: 0.96rem; color: var(--text); border-bottom: 1px solid var(--border); }
+  nav .nav-links a.desktop:hover { color: var(--emerald-deep); }
+  nav .nav-links .nav-cta { margin-top: 10px; padding: 14px 18px; font-size: 0.95rem; text-align: center; width: 100%; }
+}
+
+/* HERO */
+.hero { padding: 140px 0 88px; position: relative; overflow: hidden; background: linear-gradient(180deg, #ffffff 0%, #f7f9fc 100%); }
+.hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 85% 15%, rgba(46,204,113,0.06), transparent 55%), radial-gradient(ellipse at 12% 90%, rgba(31,169,160,0.05), transparent 50%); pointer-events: none; }
+.hero .container { position: relative; }
+.hero .deadline-flag { display: inline-flex; align-items: center; gap: 10px; background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber); padding: 8px 14px; border-radius: 4px; font-family: var(--mono); font-size: 0.78rem; margin-bottom: 22px; letter-spacing: 0.3px; font-weight: 500; }
+.hero .deadline-flag strong { color: var(--navy); font-weight: 600; }
+.hero .eyebrow { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 2px; text-transform: uppercase; color: var(--emerald-deep); margin-bottom: 18px; font-weight: 600; }
+.hero h1 { font-size: clamp(2.2rem, 4.8vw, 3.8rem); font-weight: 800; color: var(--navy); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 24px; max-width: 920px; }
+.hero h1 .accent { color: var(--emerald-deep); }
+.hero .lead { font-size: 1.18rem; max-width: 760px; margin-bottom: 18px; color: var(--text); }
+.hero .supporting { font-size: 1rem; max-width: 740px; margin-bottom: 36px; color: var(--text-dim); }
+.hero .cta-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 26px; border-radius: 5px; font-weight: 600; font-size: .94rem; transition: all .15s; cursor: pointer; border: 1px solid transparent; font-family: var(--sans); }
+.btn-primary { background: var(--navy); color: #ffffff !important; border-color: var(--navy); }
+.btn-primary:hover { background: var(--navy-soft); opacity: 1; }
+.btn-secondary { background: #ffffff; color: var(--navy) !important; border-color: var(--border-strong); }
+.btn-secondary:hover { border-color: var(--navy); opacity: 1; }
+.hero .license-line { margin-top: 24px; font-family: var(--mono); font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.5px; }
+.hero .license-line span { color: var(--emerald-deep); font-weight: 600; }
+
+/* PROBLEM */
+.problem { background: #ffffff; }
+.problem .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 40px; }
+.problem .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 26px; transition: border-color .15s; }
+.problem .stat:hover { border-color: var(--border-strong); }
+.problem .stat .figure { font-family: var(--mono); font-size: 2rem; font-weight: 800; color: var(--emerald-deep); margin-bottom: 8px; letter-spacing: -0.02em; line-height: 1.1; }
+.problem .stat .label { font-size: 0.95rem; color: var(--navy); margin-bottom: 6px; font-weight: 700; }
+.problem .stat .desc { font-size: 0.86rem; color: var(--text-soft); line-height: 1.55; }
+
+/* DIAGRAM */
+.diagram-section { background: var(--bg-alt); }
+.diagram-section .section-text { margin-bottom: 36px; }
+.diagram-svg-wrap { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 36px 28px; margin-top: 24px; overflow-x: auto; box-shadow: 0 2px 12px rgba(10,31,68,0.04); }
+.diagram-svg-wrap svg { width: 100%; height: auto; max-width: 1040px; display: block; margin: 0 auto; min-width: 720px; }
+.diagram-caption { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 28px; }
+.diagram-caption .caption-block { padding: 18px 20px; border-radius: 8px; background: #ffffff; }
+.diagram-caption .caption-block.today { border: 1px solid var(--red-border); border-left: 4px solid var(--red); }
+.diagram-caption .caption-block.with { border: 1px solid var(--emerald-border); border-left: 4px solid var(--emerald-deep); }
+.diagram-caption .caption-block .caption-label { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+.diagram-caption .caption-block.today .caption-label { color: var(--red); }
+.diagram-caption .caption-block.with .caption-label { color: var(--emerald-deep); }
+.diagram-caption .caption-block p { font-size: 0.92rem; color: var(--text-soft); line-height: 1.6; }
+@media (max-width: 720px) { .diagram-caption { grid-template-columns: 1fr; } }
+
+/* SPEC */
+.spec { background: #ffffff; }
+.spec .event-table { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 32px; font-family: var(--mono); font-size: 0.86rem; }
+.spec .event-table .row { display: grid; grid-template-columns: 200px 90px 1fr; padding: 14px 22px; border-bottom: 1px solid var(--border); align-items: center; }
+.spec .event-table .row:last-child { border-bottom: none; }
+.spec .event-table .row.head { background: var(--bg-alt); font-weight: 600; color: var(--navy); font-size: 0.74rem; letter-spacing: 1px; text-transform: uppercase; }
+.spec .event-table .row .ev { color: var(--emerald-deep); font-weight: 600; }
+.spec .event-table .row .ph { color: var(--text-dim); font-size: 0.78rem; }
+.spec .event-table .row .desc { color: var(--text-soft); font-family: var(--sans); font-size: 0.92rem; line-height: 1.5; }
+@media (max-width: 720px) {
+  .spec .event-table { font-size: 0.78rem; }
+  .spec .event-table .row { grid-template-columns: 1fr; gap: 4px; padding: 14px 16px; }
+  .spec .event-table .row.head { display: none; }
+  .spec .event-table .row .ph::before { content: "phase: "; color: var(--text-dim); }
+}
+
+/* CONFORMANCE */
+.conformance { background: var(--bg-alt); }
+.conformance .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+.conformance .tier { background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 28px 24px; transition: border-color .15s; }
+.conformance .tier:hover { border-color: var(--border-strong); }
+.conformance .tier .badge { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; padding: 4px 10px; border-radius: 3px; display: inline-block; margin-bottom: 14px; font-weight: 700; }
+.conformance .tier.bronze .badge { background: #f4ead4; color: #8a5e1a; border: 1px solid #d9c388; }
+.conformance .tier.silver .badge { background: #ecedf0; color: #5d6776; border: 1px solid #c0c5d0; }
+.conformance .tier.gold .badge { background: #fff4cc; color: #8a6e0a; border: 1px solid #e8c92a; }
+.conformance .tier h4 { font-size: 1.18rem; color: var(--navy); margin-bottom: 10px; font-weight: 700; }
+.conformance .tier p { font-size: 0.92rem; color: var(--text-soft); line-height: 1.6; margin-bottom: 14px; }
+.conformance .tier .pass { font-family: var(--mono); font-size: 0.76rem; color: var(--text-dim); }
+.conformance .tier .pass span { color: var(--emerald-deep); font-weight: 700; }
+@media (max-width: 800px) { .conformance .tier-grid { grid-template-columns: 1fr; } }
+
+/* GOVERNANCE */
+.governance { background: #ffffff; }
+.governance .commitments { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 36px; }
+.governance .commit { background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px; padding: 22px 24px; transition: border-color .15s; }
+.governance .commit:hover { border-color: var(--border-strong); }
+.governance .commit .num { font-family: var(--mono); font-size: 0.78rem; color: var(--emerald-deep); letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+.governance .commit h5 { font-size: 1rem; color: var(--navy); margin-bottom: 8px; font-weight: 700; }
+.governance .commit p { font-size: 0.88rem; color: var(--text-soft); line-height: 1.55; }
+@media (max-width: 800px) { .governance .commitments { grid-template-columns: 1fr; } }
+
+/* GET INVOLVED */
+.get-involved { background: linear-gradient(180deg, var(--bg-alt) 0%, #ffffff 100%); }
+.get-involved .actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 36px; }
+.get-involved .action { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 24px; transition: all .15s; box-shadow: 0 1px 3px rgba(10,31,68,0.04); }
+.get-involved .action:hover { border-color: var(--emerald-deep); box-shadow: 0 4px 12px rgba(10,31,68,0.08); transform: translateY(-2px); }
+.get-involved .action .label { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 1.5px; color: var(--emerald-deep); text-transform: uppercase; margin-bottom: 10px; font-weight: 700; }
+.get-involved .action h5 { font-size: 1.05rem; color: var(--navy); margin-bottom: 8px; font-weight: 700; }
+.get-involved .action p { font-size: 0.86rem; color: var(--text-soft); line-height: 1.55; margin-bottom: 14px; }
+.get-involved .action .arrow { font-family: var(--mono); color: var(--emerald-deep); font-size: 0.82rem; font-weight: 700; }
+
+/* FOOTER */
+footer { padding: 48px 0 28px; background: var(--navy); border-top: 4px solid var(--emerald-deep); color: #c9d2e0; font-size: .86rem; }
+footer .container { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 36px; margin-bottom: 28px; }
+footer .brand .logo { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: #ffffff; letter-spacing: 1.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+footer .brand .logo img { height: 36px; display: block; background: #ffffff; padding: 4px 6px; border-radius: 4px; }
+footer .brand p { max-width: 380px; line-height: 1.6; font-size: 0.84rem; color: #a8b3c8; }
+footer .col h5 { font-family: var(--mono); font-size: .72rem; letter-spacing: 1.5px; text-transform: uppercase; color: #ffffff; margin-bottom: 14px; font-weight: 700; }
+footer .col ul { list-style: none; display: grid; gap: 8px; }
+footer .col a { color: #a8b3c8; font-size: .86rem; }
+footer .col a:hover { color: #ffffff; opacity: 1; }
+footer .legal { border-top: 1px solid #1a2c52; padding-top: 20px; display: flex; flex-direction: column; gap: 8px; font-family: var(--mono); font-size: .72rem; color: #8a96b0; line-height: 1.6; }
+footer .legal a { color: #a8b3c8; }
+footer .legal a:hover { color: #ffffff; }
+@media (max-width: 720px) {
+  footer .container { grid-template-columns: 1fr; gap: 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="/" class="logo"><img src="/assets/logo.png" alt="AgentHook">AGENTHOOK</a>
+    <button class="hamburger" aria-label="Toggle menu" onclick="var n=this.parentNode.querySelector('.nav-links');n.classList.toggle('open');this.textContent=n.classList.contains('open')?'\u2715':'\u2630';">&#9776;</button>
+    <div class="nav-links">
+      <a href="#problem" class="desktop">The gap</a>
+      <a href="#diagram" class="desktop">How it works</a>
+      <a href="#spec" class="desktop">Spec</a>
+      <a href="#conformance" class="desktop">Conformance</a>
+      <a href="#governance" class="desktop">Governance</a>
+      <a href="https://github.com/agentic-thinking/agenthook" class="nav-cta">View on GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="eyebrow">An open standard from Agentic Thinking Limited</div>
+    <div class="deadline-flag">&#9888; EU AI Act Article 12 &middot; <strong>2 August 2026</strong> &middot; record-keeping enforceable for high-risk AI systems</div>
+    <h1>The open hook standard for <span class="accent">EU AI Act compliance.</span></h1>
+    <p class="lead">AgentHook<sup style="font-size:0.5em; font-weight:400; vertical-align:super; color:var(--text-dim); margin-left:2px;">&trade;</sup> is the specification for the lifecycle hooks every AI agent runtime should expose, so operators, auditors, and regulators can record what an agent did, when, why, and with what reasoning.</p>
+    <p class="supporting">Apache-2.0 in perpetuity. Stewarded by Agentic Thinking Limited under a binding charter with a no-relicence pledge, an irrevocable patent grant, and a written stewardship-transfer trigger to a neutral foundation.</p>
+    <div class="cta-row">
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/SPEC.md" class="btn btn-primary">Read the spec &rarr;</a>
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/GOVERNANCE.md" class="btn btn-secondary">View governance</a>
+    </div>
+    <div class="license-line">v0.1 draft &middot; <span>Apache License 2.0</span> &middot; perpetual no-relicence pledge</div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-label">The hook gap</div>
+    <h2 class="section-title">Article 12 needs hooks. Vendors don't agree on what they look like.</h2>
+    <p class="section-text">EU AI Act Article 12 requires automatic event logging for high-risk AI systems. Every enterprise deploying agentic AI in regulated jurisdictions needs auditable, transcript-grade records of every action an agent takes. Agent runtimes today expose hooks inconsistently. Coverage varies between vendors and over time. There is no shared definition of what a complete hook surface looks like, what events must be emitted, or what metadata each event must carry.</p>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="figure">100&#37;</div>
+        <div class="label">Compliance burden lands on the deployer</div>
+        <div class="desc">Article 12 places record-keeping obligations on whoever puts the system into service. Vendors are not required to make this easy.</div>
+      </div>
+      <div class="stat">
+        <div class="figure">N&times;M</div>
+        <div class="label">Bespoke integrations per provider, per tool</div>
+        <div class="desc">Without a standard, every enterprise rebuilds the same compliance plumbing for every agent runtime. Costs scale with vendor count multiplied by tool count.</div>
+      </div>
+      <div class="stat">
+        <div class="figure">14 wks</div>
+        <div class="label">To enforcement, as of today</div>
+        <div class="desc">Article 12 becomes enforceable on 2 August 2026. The window for vendor-side hook coverage to mature on its own has closed.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIAGRAM -->
+<section class="diagram-section" id="diagram">
+  <div class="container">
+    <div class="section-label">How it works</div>
+    <h2 class="section-title">Standardised hook envelopes, every runtime, every compliance tool.</h2>
+    <p class="section-text">Today, compliance tools have to be rebuilt per agent provider because each runtime exposes a different hook surface. With AgentHook, every conforming runtime emits the same envelope, and a single audit, policy, or memory subscriber connects to all of them.</p>
+    <div class="diagram-svg-wrap">
+      <svg viewBox="0 0 1040 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Today versus With AgentHook diagram">
+        <defs>
+          <linearGradient id="emeraldGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#0a1f44"/>
+            <stop offset="50%" stop-color="#1fa9a0"/>
+            <stop offset="100%" stop-color="#2ecc71"/>
+          </linearGradient>
+          <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#1ea65a"/>
+          </marker>
+          <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#c1272d"/>
+          </marker>
+        </defs>
+
+        <!-- LEFT PANEL: TODAY -->
+        <g>
+          <text x="130" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#c1272d" letter-spacing="2" font-weight="700">TODAY</text>
+          <text x="130" y="52" font-family="Inter, sans-serif" font-size="14" fill="#3d4961" font-weight="500">Inconsistent hooks. N&#215;M integration burden.</text>
+
+          <!-- Provider boxes -->
+          <g font-family="JetBrains Mono, monospace" font-size="12" fill="#3d4961">
+            <rect x="40" y="90" width="160" height="58" rx="6" fill="#ffffff" stroke="#c9d2e0" stroke-width="1"/>
+            <text x="120" y="115" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime A</text>
+            <text x="120" y="135" text-anchor="middle" fill="#6b768c" font-size="10">PreTool only</text>
+
+            <rect x="40" y="170" width="160" height="58" rx="6" fill="#ffffff" stroke="#c9d2e0" stroke-width="1"/>
+            <text x="120" y="195" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime B</text>
+            <text x="120" y="215" text-anchor="middle" fill="#6b768c" font-size="10">PreTool + PostTool</text>
+
+            <rect x="40" y="250" width="160" height="58" rx="6" fill="#ffffff" stroke="#c9d2e0" stroke-width="1"/>
+            <text x="120" y="275" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime C</text>
+            <text x="120" y="295" text-anchor="middle" fill="#6b768c" font-size="10">No hooks</text>
+          </g>
+
+          <!-- Compliance tools -->
+          <g font-family="JetBrains Mono, monospace" font-size="11" fill="#3d4961">
+            <rect x="320" y="90" width="140" height="48" rx="6" fill="#fff5f5" stroke="#c1272d" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <text x="390" y="118" text-anchor="middle" fill="#0a1f44" font-weight="700">Audit</text>
+
+            <rect x="320" y="170" width="140" height="48" rx="6" fill="#fff5f5" stroke="#c1272d" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <text x="390" y="198" text-anchor="middle" fill="#0a1f44" font-weight="700">Policy</text>
+
+            <rect x="320" y="250" width="140" height="48" rx="6" fill="#fff5f5" stroke="#c1272d" stroke-width="1.2" stroke-dasharray="3,3"/>
+            <text x="390" y="278" text-anchor="middle" fill="#0a1f44" font-weight="700">Memory</text>
+          </g>
+
+          <!-- Tangled red arrows -->
+          <g stroke="#c1272d" stroke-width="1.4" fill="none" opacity="0.7">
+            <path d="M 200 119 Q 260 119 320 114" marker-end="url(#arrowRed)"/>
+            <path d="M 200 199 Q 260 130 320 114" marker-end="url(#arrowRed)" stroke-dasharray="4,3"/>
+            <path d="M 200 199 Q 260 199 320 194" marker-end="url(#arrowRed)"/>
+            <path d="M 200 279 Q 260 279 320 274" marker-end="url(#arrowRed)" stroke-dasharray="4,3"/>
+            <path d="M 200 119 Q 260 250 320 274" marker-end="url(#arrowRed)" stroke-dasharray="4,3"/>
+          </g>
+          <text x="265" y="370" font-family="Inter, sans-serif" font-size="11" fill="#c1272d" text-anchor="middle" font-weight="600">Bespoke integration per pair</text>
+
+          <!-- Divider -->
+          <line x1="500" y1="60" x2="500" y2="380" stroke="#c9d2e0" stroke-width="1" stroke-dasharray="6,4"/>
+        </g>
+
+        <!-- RIGHT PANEL: WITH AGENTHOOK -->
+        <g>
+          <text x="540" y="32" font-family="JetBrains Mono, monospace" font-size="13" fill="#1ea65a" letter-spacing="2" font-weight="700">WITH AGENTHOOK</text>
+          <text x="540" y="52" font-family="Inter, sans-serif" font-size="14" fill="#3d4961" font-weight="500">Standard envelope. Every runtime, every tool.</text>
+
+          <!-- Provider boxes -->
+          <g font-family="JetBrains Mono, monospace" font-size="12" fill="#3d4961">
+            <rect x="540" y="90" width="160" height="58" rx="6" fill="#ffffff" stroke="#1ea65a" stroke-width="1.4"/>
+            <text x="620" y="115" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime A</text>
+            <text x="620" y="135" text-anchor="middle" fill="#1ea65a" font-size="10" font-weight="600">AgentHook conformant</text>
+
+            <rect x="540" y="170" width="160" height="58" rx="6" fill="#ffffff" stroke="#1ea65a" stroke-width="1.4"/>
+            <text x="620" y="195" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime B</text>
+            <text x="620" y="215" text-anchor="middle" fill="#1ea65a" font-size="10" font-weight="600">AgentHook conformant</text>
+
+            <rect x="540" y="250" width="160" height="58" rx="6" fill="#ffffff" stroke="#1ea65a" stroke-width="1.4"/>
+            <text x="620" y="275" text-anchor="middle" fill="#0a1f44" font-weight="700">Agent Runtime C</text>
+            <text x="620" y="295" text-anchor="middle" fill="#1ea65a" font-size="10" font-weight="600">AgentHook conformant</text>
+          </g>
+
+          <!-- AgentHook envelope (the bus) -->
+          <g>
+            <rect x="740" y="155" width="120" height="90" rx="8" fill="url(#emeraldGrad)" stroke="#1ea65a" stroke-width="1.5"/>
+            <text x="800" y="190" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#ffffff" font-weight="700" letter-spacing="1">AGENTHOOK</text>
+            <text x="800" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#ffffff">envelope</text>
+            <text x="800" y="225" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#d4f5e3">Apache 2.0</text>
+          </g>
+
+          <!-- Compliance tools -->
+          <g font-family="JetBrains Mono, monospace" font-size="11" fill="#3d4961">
+            <rect x="900" y="90" width="120" height="48" rx="6" fill="#f0fbf4" stroke="#1ea65a" stroke-width="1.2"/>
+            <text x="960" y="118" text-anchor="middle" fill="#0a1f44" font-weight="700">Audit</text>
+
+            <rect x="900" y="170" width="120" height="48" rx="6" fill="#f0fbf4" stroke="#1ea65a" stroke-width="1.2"/>
+            <text x="960" y="198" text-anchor="middle" fill="#0a1f44" font-weight="700">Policy</text>
+
+            <rect x="900" y="250" width="120" height="48" rx="6" fill="#f0fbf4" stroke="#1ea65a" stroke-width="1.2"/>
+            <text x="960" y="278" text-anchor="middle" fill="#0a1f44" font-weight="700">Memory</text>
+          </g>
+
+          <!-- Clean green arrows: providers -> bus -->
+          <g stroke="#1ea65a" stroke-width="1.6" fill="none">
+            <path d="M 700 119 L 740 175" marker-end="url(#arrowGreen)"/>
+            <path d="M 700 199 L 740 200" marker-end="url(#arrowGreen)"/>
+            <path d="M 700 279 L 740 225" marker-end="url(#arrowGreen)"/>
+          </g>
+
+          <!-- Clean green arrows: bus -> tools -->
+          <g stroke="#1ea65a" stroke-width="1.6" fill="none">
+            <path d="M 860 175 L 900 114" marker-end="url(#arrowGreen)"/>
+            <path d="M 860 200 L 900 194" marker-end="url(#arrowGreen)"/>
+            <path d="M 860 225 L 900 274" marker-end="url(#arrowGreen)"/>
+          </g>
+
+          <text x="780" y="370" font-family="Inter, sans-serif" font-size="11" fill="#1ea65a" text-anchor="middle" font-weight="600">One envelope. One integration per side.</text>
+        </g>
+      </svg>
+    </div>
+    <div class="diagram-caption">
+      <div class="caption-block today">
+        <div class="caption-label">Today</div>
+        <p>Each compliance tool has to know each runtime's hook surface, fail-mode behaviour, and metadata shape. Every new vendor adds another integration. Every change to a vendor's hooks breaks the audit trail.</p>
+      </div>
+      <div class="caption-block with">
+        <div class="caption-label">With AgentHook</div>
+        <p>Runtimes emit a standard envelope. Compliance tools subscribe once and work across every conforming runtime. Vendor changes are absorbed by the envelope contract, not by every downstream subscriber.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPEC -->
+<section class="spec" id="spec">
+  <div class="container">
+    <div class="section-label">The specification</div>
+    <h2 class="section-title">Ten canonical event types. One envelope. Apache 2.0.</h2>
+    <p class="section-text">AgentHook defines the wire-format envelope every event must carry, the canonical set of event types every conforming runtime emits, the standard metadata keys per event type, and the hook delivery semantics (sync versus async, fail-mode behaviour). It is implementation-neutral: any transport, any host language, provided the envelope and semantics are honoured.</p>
+    <div class="event-table">
+      <div class="row head"><div>Event</div><div>Phase</div><div>Description</div></div>
+      <div class="row"><div class="ev">PreToolUse</div><div class="ph">before</div><div class="desc">The agent is about to execute a tool call.</div></div>
+      <div class="row"><div class="ev">PostToolUse</div><div class="ph">after</div><div class="desc">The tool call returned, or threw.</div></div>
+      <div class="row"><div class="ev">UserPromptSubmit</div><div class="ph">before</div><div class="desc">The user submitted a prompt to the agent.</div></div>
+      <div class="row"><div class="ev">PreLLMCall</div><div class="ph">before</div><div class="desc">The agent is about to call its LLM.</div></div>
+      <div class="row"><div class="ev">PostLLMCall</div><div class="ph">after</div><div class="desc">The LLM call returned. Carries reasoning and response content for transcript-grade Article 12 records.</div></div>
+      <div class="row"><div class="ev">ModelResponse</div><div class="ph">after</div><div class="desc">The model has finished generating its response.</div></div>
+      <div class="row"><div class="ev">SessionStart</div><div class="ph">state</div><div class="desc">A new agent session began.</div></div>
+      <div class="row"><div class="ev">SessionEnd</div><div class="ph">state</div><div class="desc">An agent session ended.</div></div>
+      <div class="row"><div class="ev">AgentHandoff</div><div class="ph">during</div><div class="desc">The agent is delegating to another agent.</div></div>
+      <div class="row"><div class="ev">ErrorOccurred</div><div class="ph">after</div><div class="desc">An error was raised that did not terminate the session.</div></div>
+    </div>
+    <p class="section-text" style="margin-top:24px;">Implementations may emit additional event types using PascalCase names. Subscribers may ignore unknown types. Buses must not reject events on unrecognised <code>event_type</code>.</p>
+    <div style="margin-top:8px;"><a href="https://github.com/agentic-thinking/agenthook/blob/main/SPEC.md" class="btn btn-secondary">Read the full specification &rarr;</a></div>
+  </div>
+</section>
+
+<!-- CONFORMANCE -->
+<section class="conformance" id="conformance">
+  <div class="container">
+    <div class="section-label">Conformance</div>
+    <h2 class="section-title">Three tiers. One open self-test rig. One signed report path.</h2>
+    <p class="section-text">A publisher claims a tier. A test rig verifies the claim. The self-test harness is open source and free for any implementer. A hosted Conformance-as-a-Service is operated by the steward for procurement-grade signed reports, on a cost-recovery basis. Conformance certification is never used to gate participation in the working group or in the specification.</p>
+    <div class="tier-grid">
+      <div class="tier bronze">
+        <div class="badge">Bronze</div>
+        <h4>Lifecycle correctness</h4>
+        <p>Publisher emits the canonical event types with the envelope format. Required fields populated, valid JSON, valid event_id, valid timestamp.</p>
+        <div class="pass">Threshold: <span>80% pass</span> on Bronze test set</div>
+      </div>
+      <div class="tier silver">
+        <div class="badge">Silver</div>
+        <h4>LLM transcript</h4>
+        <p>Bronze plus matched Pre and Post LLM call pairs carrying model, provider, token counts, and response content.</p>
+        <div class="pass">Threshold: <span>80% pass</span> on Silver test set</div>
+      </div>
+      <div class="tier gold">
+        <div class="badge">Gold</div>
+        <h4>Reasoning and correlation</h4>
+        <p>Silver plus reasoning content capture when the provider exposes it, and correlation IDs on Pre events that initiate sub-agent calls or retries.</p>
+        <div class="pass">Threshold: <span>80% pass</span> on Gold test set</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GOVERNANCE -->
+<section class="governance" id="governance">
+  <div class="container">
+    <div class="section-label">Governance</div>
+    <h2 class="section-title">Six binding licensing commitments. Stewardship that transfers when adoption justifies it.</h2>
+    <p class="section-text">The specification is published and stewarded by Agentic Thinking Limited (UK), a private company limited by shares (company number 17152930). Stewardship is provisional. The intent is to transfer to a neutral foundation when adoption justifies the legal and operational cost. The following commitments are binding on the steward and any successor.</p>
+    <div class="commitments">
+      <div class="commit">
+        <div class="num">01</div>
+        <h5>Apache License 2.0 in perpetuity</h5>
+        <p>The licence shall not be replaced, restricted, or supplemented with additional terms by the steward or any successor.</p>
+      </div>
+      <div class="commit">
+        <div class="num">02</div>
+        <h5>No royalty fees</h5>
+        <p>No fee may be charged for the right to implement the specification, claim conformance, or use the AgentHook name in describing an implementation.</p>
+      </div>
+      <div class="commit">
+        <div class="num">03</div>
+        <h5>No participation gating</h5>
+        <p>Any individual or organisation may submit Proposals and contribute to working-group discussion. Vote-eligible seats are limited to founding and elected members; this does not restrict contribution.</p>
+      </div>
+      <div class="commit">
+        <div class="num">04</div>
+        <h5>Patent grant</h5>
+        <p>Royalty-free, irrevocable patent licence to any party implementing the specification. Survives any change of stewardship.</p>
+      </div>
+      <div class="commit">
+        <div class="num">05</div>
+        <h5>Right to fork</h5>
+        <p>The specification may be forked at any time under Apache 2.0. The steward may not assert trademark rights against forks (provided the forks do not represent themselves as the official specification).</p>
+      </div>
+      <div class="commit">
+        <div class="num">06</div>
+        <h5>Twelve-month notice on changes</h5>
+        <p>Any amendment to the Charter or to these commitments requires twelve months' public notice and unanimous Working Group approval.</p>
+      </div>
+    </div>
+    <div style="margin-top:32px;">
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/CHARTER.md" class="btn btn-secondary">Read the Charter &rarr;</a>
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/GOVERNANCE.md" class="btn btn-secondary" style="margin-left:8px;">Working Group rules &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<!-- GET INVOLVED -->
+<section class="get-involved" id="get-involved">
+  <div class="container">
+    <div class="section-label">Get involved</div>
+    <h2 class="section-title">The specification is pre-v1.0. Contributions, implementations, and conformance trials are welcomed.</h2>
+    <p class="section-text">Working group composition is being finalised ahead of the public draft. Any individual or organisation may contribute to discussion in GitHub Issues. Substantive specification changes follow the AgentHook Proposal (AHP) process.</p>
+    <div class="actions">
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/SPEC.md" class="action">
+        <div class="label">Spec</div>
+        <h5>Read the specification</h5>
+        <p>Envelope format, ten canonical event types, hook delivery semantics, conformance tiers.</p>
+        <div class="arrow">SPEC.md &rarr;</div>
+      </a>
+      <a href="https://github.com/agentic-thinking/agenthook/blob/main/PROPOSALS/" class="action">
+        <div class="label">Propose</div>
+        <h5>Submit an AgentHook Proposal</h5>
+        <p>Substantive changes go through the AHP process, modelled on Python PEPs and Rust RFCs.</p>
+        <div class="arrow">PROPOSALS/ &rarr;</div>
+      </a>
+      <a href="https://github.com/agentic-thinking/agenthook/issues" class="action">
+        <div class="label">Discuss</div>
+        <h5>Open an issue</h5>
+        <p>Questions, edge cases, integration notes, conformance test feedback. All on GitHub.</p>
+        <div class="arrow">Issues &rarr;</div>
+      </a>
+      <a href="https://agenticthinking.uk/" class="action">
+        <div class="label">Steward</div>
+        <h5>Agentic Thinking Limited</h5>
+        <p>The provisional steward of the AgentHook specification. Builders of HookBus, the first reference implementation.</p>
+        <div class="arrow">agenticthinking.uk &rarr;</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="brand">
+      <div class="logo"><img src="/assets/logo.png" alt="AgentHook">AGENTHOOK</div>
+      <p>An open specification for the lifecycle hooks every AI agent runtime should expose. Apache 2.0 in perpetuity. Stewarded by Agentic Thinking Limited (UK).</p>
+    </div>
+    <div class="col">
+      <h5>Spec</h5>
+      <ul>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/SPEC.md">Specification</a></li>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/CONFORMANCE/">Conformance</a></li>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/PROPOSALS/">Proposals</a></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h5>Governance</h5>
+      <ul>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/CHARTER.md">Charter</a></li>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/GOVERNANCE.md">Working Group</a></li>
+        <li><a href="https://github.com/agentic-thinking/agenthook/blob/main/MEMBERS.md">Members</a></li>
+      </ul>
+    </div>
+    <div class="col">
+      <h5>Project</h5>
+      <ul>
+        <li><a href="https://github.com/agentic-thinking/agenthook">GitHub</a></li>
+        <li><a href="https://github.com/agentic-thinking/hookbus">HookBus (reference)</a></li>
+        <li><a href="https://agenticthinking.uk/">Steward</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container">
+    <div class="legal">
+      <div>Stewarded by Agentic Thinking Limited &middot; Company 17152930 (England and Wales) &middot; <a href="https://agenticthinking.uk/">agenticthinking.uk</a></div>
+      <div>HookBus® (UK00004375440) and AgentHook™ are trade marks of Agentic Thinking Limited.</div>
+      <div>The AgentHook specification is licensed under the Apache License, Version 2.0.</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
