@@ -68,11 +68,24 @@ except that editorial corrections that do not change the substance of any term m
 
 If any provision of this Charter is held to be unenforceable in a given jurisdiction, the remaining provisions remain in full force.
 
+
+## 9. Independent Ombudsman
+
+For enforcement matters that involve the steward or any of its officers (including but not limited to Code of Conduct reports concerning steward staff or steward-affiliated contributors), reports shall be escalated to an Independent Ombudsman, who is and shall be:
+
+- An individual or body external to Agentic Thinking Limited
+- Not an employee, contractor, officer, or director of the steward
+- Empowered to issue findings and recommendations binding on the steward in respect of the enforcement matter
+
+The Independent Ombudsman will be identified and appointed imminently. Until appointed, reports involving the steward may be made directly to the Working Group through the issue tracker, marked private to the maintainers in line with the Code of Conduct process.
+
 ---
 
 **Signed for and on behalf of Agentic Thinking Limited**
 
-**Status:** signed at charter v1.0.
+P-ruocco
 Director
 Agentic Thinking Limited
-Date: 25 April 2026
+Date: 26 April 2026
+
+**Countersignature:** This Charter shall be countersigned by Founding Members upon their confirmation, signifying acceptance of the Working Group governance terms set out herein. Until ratification, the Charter binds the steward unilaterally as the provisional pre-signature commitment.
