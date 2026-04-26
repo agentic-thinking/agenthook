@@ -189,3 +189,49 @@ The `schema_version` field allows implementations to negotiate envelope shape. B
 ---
 
 This is a working draft. Substantive change proposals are made through the [Proposals](./PROPOSALS/) process.
+
+
+---
+
+## Appendix A — Reference implementation sketch (non-normative)
+
+This appendix is non-normative. It illustrates the minimum a publisher and a subscriber must do to participate. Any host language and any transport that satisfies the semantics in section 4 is permitted.
+
+> **WARNING:** The sketches below intentionally omit authentication, authorisation, and transport security. They are pedagogical, not production code. A production deployment MUST place publishers and subscribers within an operator-controlled trust boundary OR connect them over an authenticated, integrity-protected transport. Transport security is currently out of scope of the normative specification; see [`SECURITY.md`](./SECURITY.md) for the current threat model and the rationale for treating transport security at the deployment layer.
+
+### Publisher
+
+```python
+import httpx, uuid, datetime as dt
+
+def emit(event_type, **fields):
+    event = {
+        "schema_version": 1,
+        "event_id": str(uuid.uuid4()),
+        "event_type": event_type,
+        "timestamp": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "source": "your-runtime",
+        **fields,
+    }
+    httpx.post("http://hookbus:18800/event", json=event, timeout=5)
+
+emit("PreToolUse", tool_name="Bash", tool_input={"command": "git push"})
+```
+
+### Subscriber
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.post("/event")
+async def receive(event: dict):
+    if event["event_type"] == "PreToolUse":
+        cmd = event.get("tool_input", {}).get("command", "")
+        if "git push" in cmd:
+            return {"verdict": "deny", "reason": "review push first"}
+    return {"verdict": "allow"}
+```
+
+Validate every event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for a fully-populated PostLLMCall.

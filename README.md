@@ -1,10 +1,12 @@
 # AgentHook
 
+> **DRAFT — pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
+
 An open specification for the lifecycle hooks every AI agent runtime should expose so that operators, auditors, and regulators can record what an agent did, when, why, and with what reasoning.
 
 The specification is **Apache-2.0**. Stewardship sits with **Agentic Thinking Limited (UK)** under the commitments set out in [`GOVERNANCE.md`](./GOVERNANCE.md). Adopters benefit from a perpetual no-relicence pledge and a working-group governance model.
 
-The first reference implementation is [HookBus](https://github.com/agentic-thinking/hookbus). Other compliant implementations are explicitly invited and will be tested against the same conformance suite.
+The first reference implementation is [HookBus](https://github.com/agentic-thinking/hookbus). Compliant alternative implementations are explicitly invited and will be tested against the same conformance suite once the test rig ships.
 
 ## Why it exists
 
@@ -26,3 +28,7 @@ AgentHook defines that standard.
 ## Status
 
 Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process.
+
+## Quick start
+
+Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.

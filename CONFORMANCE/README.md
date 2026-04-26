@@ -57,9 +57,4 @@ Once the rig ships, conformant implementations and their tier are listed in `REG
 
 ## Timeline
 
-- v1.0 specification: target Q3 2026 (subject to Working Group decision)
-- Self-test rig: ships with v1.0
-- Hosted Conformance-as-a-Service: ships within 90 days of v1.0
-- First public conformance reports: target Q4 2026
-
-This timeline is provisional and will be updated as Working Group composition is confirmed.
+The conformance harness ships alongside specification v1.0. Specific dates will be set when the Working Group is confirmed and the editor team has scoped the work. We do not publish target dates without commits behind them.

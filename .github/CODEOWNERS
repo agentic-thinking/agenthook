@@ -1,0 +1,15 @@
+# CODEOWNERS — every PR requires sign-off from the file's owner
+#
+# Until the Working Group is constituted, the steward (P-ruocco) is the sole code owner.
+# Once Founding Members are confirmed, this file is updated to route reviews per area.
+
+# Default — all files require steward review
+*                                @AgenticThinkingUK
+
+# Specification-bearing files require additional ratification once WG exists
+SPEC.md                          @AgenticThinkingUK
+CHARTER.md                       @AgenticThinkingUK
+GOVERNANCE.md                    @AgenticThinkingUK
+envelope.schema.json             @AgenticThinkingUK
+PROPOSALS/                       @AgenticThinkingUK
+CONFORMANCE/                     @AgenticThinkingUK

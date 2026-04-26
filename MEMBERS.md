@@ -1,6 +1,6 @@
 # Members
 
-This file tracks the composition of the AgentHook Working Group, including invited founding members, accepted members, and the stewardship seat. It is updated as membership changes.
+This file tracks the composition of the AgentHook Working Group, including the stewardship seat and any confirmed members. It is updated as composition changes.
 
 ## Stewardship seat (non-voting)
 
@@ -10,15 +10,20 @@ This file tracks the composition of the AgentHook Working Group, including invit
 
 ## Founding members
 
-The Working Group invites three founding members at launch on the basis of having implemented hooks materially relevant to the specification. Founding member identities will be added to this file when written acceptance is received and the invitee consents to public listing.
+**Working group composition: open to self-nomination.**
 
-| Slot | Profile | Status |
-|---|---|---|
-| 1 | AI coding assistant runtime (commercial CLI/IDE class) | invitation issued |
-| 2 | Open-source agent framework (autonomous research/coding class) | invitation issued |
-| 3 | Agent runtime middleware (terminal/shell-bus class) | invitation issued |
+Founding membership is open to organisations operating an agent runtime that emits, or is preparing to emit, lifecycle hooks materially relevant to the specification. The Charter becomes effective in its full Working-Group form upon ratification by the first three independent Founding Members.
 
-Founding member status is offered before public announcement. Acceptance is recorded here when received in writing (email or PR signature) and with the invitee's consent to be named.
+To self-nominate, file a Working Group membership issue using the [membership template](https://github.com/agentic-thinking/agenthook/issues/new?template=membership.md). Self-nominations are reviewed at the next monthly Working Group meeting and confirmed by consensus of seated members.
+
+Membership criteria:
+
+- Operates an agent runtime that emits, or is preparing to emit, lifecycle hooks
+- Commits to approximately 1-2 hours per month of meeting time plus pull-request review
+- Consents to public listing in this file once accepted
+- Discloses any conflicts of interest with other agent runtimes, hook standards, or compliance vendors
+
+Founding member identities are added to this file when written acceptance is received and the invitee consents to public listing.
 
 ## Elected members
 
