@@ -45,11 +45,13 @@ The AgentHook name shall be made available for nominative use by conforming impl
 
 ## 6. Stewardship transfer
 
-The steward intends to transfer stewardship to a neutral foundation when adoption of the specification justifies the legal and operational cost of formal foundation governance. Triggers that the steward considers material to such transfer include:
+The steward will transfer stewardship of the specification to a neutral, vendor-independent foundation when the specification has reached version 1.0 stability **and** at least one of the following conditions has occurred:
 
-- five or more independent organisations are publicly conformant at any tier;
-- the specification is cited in regulatory guidance by the European Commission, a Member State competent authority, or an equivalent jurisdiction;
-- annual revenue from conformance certification activities exceeds the operational cost of running a neutral foundation under standard charity or non-profit accounting in the United Kingdom.
+- at least three of the leading commercial agent runtime providers have implemented AgentHook natively in their published runtime;
+- at least three independent open-source agent runtimes have implemented AgentHook natively, and at least one alternative AgentHook-conformant collector implementation exists in the wild that is not operated by the steward;
+- the European AI Office, an equivalent body of the European Commission, or a Member State competent authority has cited the specification in formal published guidance.
+
+The steward shall not condition the transfer on a specific calendar date. The steward shall publish the working group's interpretation of "leading commercial agent runtime providers" at the time of transfer, with reasoning.
 
 Until such transfer, the steward shall continue to operate under the terms of this Charter and the Governance document. Transfer shall preserve all licence and patent grants made under this Charter and shall be effected in a manner that does not impair any existing implementation's rights.
 
