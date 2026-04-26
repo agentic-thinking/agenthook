@@ -156,6 +156,33 @@ nav .hamburger { display: none; background: var(--bg-alt); border: 1px solid var
 .conformance .tier .pass span { color: var(--emerald-deep); font-weight: 700; }
 @media (max-width: 800px) { .conformance .tier-grid { grid-template-columns: 1fr; } }
 
+/* RUNTIME SUPPORT */
+.runtimes { background: var(--bg-card); }
+.runtimes .coverage-table { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 32px; font-family: var(--mono); font-size: 0.82rem; }
+.runtimes .coverage-table .row { display: grid; grid-template-columns: 1.7fr 0.95fr 1.05fr 0.95fr 0.85fr 0.75fr; padding: 14px 22px; border-bottom: 1px solid var(--border); align-items: center; gap: 10px; }
+.runtimes .coverage-table .row:last-child { border-bottom: none; }
+.runtimes .coverage-table .row.head { background: var(--bg-alt); font-weight: 600; color: var(--navy); font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; }
+.runtimes .coverage-table .runtime { color: var(--navy); font-weight: 700; font-family: var(--sans); font-size: 0.92rem; }
+.runtimes .coverage-table .runtime small { display: block; font-family: var(--mono); font-size: 0.7rem; color: var(--text-dim); font-weight: 500; margin-top: 3px; letter-spacing: 0.5px; }
+.runtimes .coverage-table .yes { color: #1ea65a; font-weight: 700; }
+.runtimes .coverage-table .no { color: #c1272d; font-weight: 600; }
+.runtimes .coverage-table .partial { color: #b8860b; font-weight: 600; }
+.runtimes .coverage-table .pending-mark { color: var(--text-dim); font-weight: 500; }
+.runtimes .coverage-table .tier-pill { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 1.5px; padding: 3px 9px; border-radius: 3px; font-weight: 700; text-transform: uppercase; display: inline-block; }
+.runtimes .coverage-table .tier-pill.gold { background: #fff4cc; color: #8a6e0a; border: 1px solid #e8c92a; }
+.runtimes .coverage-table .tier-pill.silver { background: #ecedf0; color: #5d6776; border: 1px solid #c0c5d0; }
+.runtimes .coverage-table .tier-pill.bronze { background: #f4ead4; color: #8a5e1a; border: 1px solid #d9c388; }
+.runtimes .coverage-table .tier-pill.partial { background: #faf0d8; color: #8a5e1a; border: 1px solid #e0c490; }
+.runtimes .coverage-table .tier-pill.pending { background: #f0f2f6; color: #6b768c; border: 1px solid #d0d6de; }
+.runtimes .coverage-table .pending-row { background: var(--bg-alt); }
+.runtimes .coverage-table .pending-row .runtime { color: var(--text-soft); font-weight: 500; }
+.runtimes .audit-note { font-size: 0.84rem; color: var(--text-dim); margin-top: 18px; line-height: 1.55; }
+@media (max-width: 800px) {
+  .runtimes .coverage-table { font-size: 0.74rem; }
+  .runtimes .coverage-table .row { grid-template-columns: 1fr; gap: 4px; padding: 14px 16px; }
+  .runtimes .coverage-table .row.head { display: none; }
+}
+
 /* GOVERNANCE */
 .governance { background: #ffffff; }
 .governance .commitments { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 36px; }
@@ -206,6 +233,7 @@ footer .legal a:hover { color: #ffffff; }
       <a href="#diagram" class="desktop">How it works</a>
       <a href="#spec" class="desktop">Spec</a>
       <a href="#conformance" class="desktop">Conformance</a>
+      <a href="#runtimes" class="desktop">Runtimes</a>
       <a href="#governance" class="desktop">Governance</a>
       <a href="https://github.com/agentic-thinking/agenthook" class="nav-cta">View on GitHub</a>
     </div>
@@ -446,12 +474,72 @@ footer .legal a:hover { color: #ffffff; }
   </div>
 </section>
 
+<!-- RUNTIME SUPPORT -->
+<section class="runtimes" id="runtimes">
+  <div class="container">
+    <div class="section-label">Runtime support</div>
+    <h2 class="section-title">Where each agent runtime stands today.</h2>
+    <p class="section-text">A current audit of which AgentHook lifecycle events each major agent runtime exposes, scored against the conformance tiers. Audits are based on direct inspection of each runtime's published hook surface as of the date below. Any runtime can move tier by exposing the missing hooks; the AgentHook specification itself does not need to change for them to do so.</p>
+    <div class="coverage-table">
+      <div class="row head">
+        <div>Runtime</div>
+        <div>UserPromptSubmit</div>
+        <div>Pre / Post LLMCall</div>
+        <div>Pre / Post ToolUse</div>
+        <div>Reasoning capture</div>
+        <div>Tier</div>
+      </div>
+      <div class="row">
+        <div class="runtime">Hermes<small>NousResearch</small></div>
+        <div class="yes">yes</div>
+        <div class="yes">yes / yes</div>
+        <div class="yes">yes / yes</div>
+        <div class="yes">yes</div>
+        <div><span class="tier-pill gold">Gold</span></div>
+      </div>
+      <div class="row">
+        <div class="runtime">Claude Code<small>Anthropic</small></div>
+        <div class="yes">yes</div>
+        <div class="no">no / no</div>
+        <div class="yes">yes / yes</div>
+        <div class="no">no</div>
+        <div><span class="tier-pill bronze">Bronze</span></div>
+      </div>
+      <div class="row">
+        <div class="runtime">Amp<small>Sourcegraph</small></div>
+        <div class="yes">yes</div>
+        <div class="no">no / no</div>
+        <div class="yes">yes / yes</div>
+        <div class="no">no</div>
+        <div><span class="tier-pill bronze">Bronze</span></div>
+      </div>
+      <div class="row">
+        <div class="runtime">OpenClaw<small>open source</small></div>
+        <div class="no">no</div>
+        <div class="partial">no / output only</div>
+        <div class="yes">yes / yes</div>
+        <div class="no">no</div>
+        <div><span class="tier-pill partial">Partial</span></div>
+      </div>
+      <div class="row pending-row">
+        <div class="runtime">Cursor, OpenAI Agents SDK, Google ADK, Microsoft AGT, GitHub Copilot CLI, Cognition Devin<small>audit pending</small></div>
+        <div class="pending-mark">.</div>
+        <div class="pending-mark">.</div>
+        <div class="pending-mark">.</div>
+        <div class="pending-mark">.</div>
+        <div><span class="tier-pill pending">Pending</span></div>
+      </div>
+    </div>
+    <p class="audit-note">Audited against the AgentHook v0.1 draft specification. Pending rows will be filled as each runtime's hook surface is reviewed and validated against the conformance test suite. Runtime providers are invited to self-attest by opening a Pull Request against the AgentHook repository, with reasoning and a link to the relevant hook source code.</p>
+  </div>
+</section>
+
 <!-- GOVERNANCE -->
 <section class="governance" id="governance">
   <div class="container">
     <div class="section-label">Governance</div>
-    <h2 class="section-title">Six binding licensing commitments. Stewardship that transfers when adoption justifies it.</h2>
-    <p class="section-text">The specification is published and stewarded by Agentic Thinking Limited (UK), a private company limited by shares (company number 17152930). Stewardship is provisional. The intent is to transfer to a neutral foundation when adoption justifies the legal and operational cost. The following commitments are binding on the steward and any successor.</p>
+    <h2 class="section-title">Binding licensing commitments. Stewardship that transfers on conditions, not on a calendar.</h2>
+    <p class="section-text">The specification is published and stewarded by Agentic Thinking Limited (UK), a private company limited by shares (company number 17152930). Stewardship is provisional. The steward will transfer governance to a neutral, vendor-independent foundation when the specification has reached version 1.0 stability and at least one of the following has occurred: three or more leading commercial agent runtime providers have implemented AgentHook natively; three or more independent open-source runtimes have implemented it natively, with at least one alternative AgentHook-conformant collector existing in the wild; or the European AI Office or an equivalent recognised body has cited the specification in formal published guidance. The following commitments are binding on the steward and any successor.</p>
     <div class="commitments">
       <div class="commit">
         <div class="num">01</div>
