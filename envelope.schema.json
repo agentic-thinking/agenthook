@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agenthook.org/envelope.schema.json",
+  "title": "AgentHook Event Envelope",
+  "description": "JSON Schema for the AgentHook event envelope, SPEC v0.1 section 1.",
+  "type": "object",
+  "required": ["event_id", "event_type", "timestamp", "source"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "default": 1,
+      "description": "Wire-format version. Bumped only on breaking envelope changes."
+    },
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event."
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "PreToolUse",
+        "PostToolUse",
+        "UserPromptSubmit",
+        "PreLLMCall",
+        "PostLLMCall",
+        "ModelResponse",
+        "SessionStart",
+        "SessionEnd",
+        "AgentHandoff",
+        "ErrorOccurred"
+      ],
+      "description": "Canonical event type. PascalCase, no underscores or dots."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the event was emitted, ISO 8601 UTC."
+    },
+    "source": {
+      "type": "string",
+      "description": "Publisher family, e.g. claude-code, amp, hermes, cursor, cody, openai-agents-sdk."
+    },
+    "agent_id": {"type": "string"},
+    "session_id": {"type": "string"},
+    "correlation_id": {"type": "string"},
+    "tool_name": {"type": "string", "description": "Required for PreToolUse and PostToolUse."},
+    "tool_input": {"type": "object", "additionalProperties": true},
+    "metadata": {"type": "object", "additionalProperties": true},
+    "annotations": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": false
+}

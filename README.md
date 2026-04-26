@@ -25,4 +25,4 @@ AgentHook defines that standard.
 
 ## Status
 
-Pre-v1.0. Working group composition is being finalised. Public draft expected after founding members are confirmed in writing.
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process.
