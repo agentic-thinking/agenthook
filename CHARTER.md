@@ -72,7 +72,7 @@ If any provision of this Charter is held to be unenforceable in a given jurisdic
 
 **Signed for and on behalf of Agentic Thinking Limited**
 
-*[name and signature, on the published version]*
+**Status:** signed at charter v1.0.
 Director
 Agentic Thinking Limited
 Date: 25 April 2026
