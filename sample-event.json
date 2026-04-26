@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "event_id": "8c4f9d12-7a8b-4c3d-9e2f-1a2b3c4d5e6f",
+  "event_type": "PostLLMCall",
+  "timestamp": "2026-04-25T15:42:11.487Z",
+  "source": "hermes",
+  "agent_id": "research-bot-3",
+  "session_id": "sess-abc123",
+  "correlation_id": "run-7f3b9a2e",
+  "metadata": {
+    "model": "Hermes-3-Llama-3.1-405B",
+    "provider": "openrouter",
+    "tokens_input": 1247,
+    "tokens_output": 392,
+    "total_tokens": 1639,
+    "reasoning_content": "The user asked for a summary. I should ...",
+    "reasoning_chars": 412,
+    "response_content": "Here is the summary you asked for: ..."
+  }
+}
