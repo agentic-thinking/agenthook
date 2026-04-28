@@ -68,6 +68,7 @@ python -m agenthook.cli emit --event PreToolUse --source demo --session demo --t
 python -m agenthook.cli validate ../../sample-event.json
 python -m agenthook.cli doctor --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
 python -m agenthook.cli init claude-code --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
+python -m agenthook.cli test collector --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
 ```
 
 The kit is deliberately small: envelope builders, validation, `emit`,

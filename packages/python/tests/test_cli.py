@@ -136,6 +136,46 @@ class AgentHookCliTests(unittest.TestCase):
         self.assertEqual(seen["body"]["event_type"], "PreToolUse")
         self.assertEqual(json.loads(proc.stdout)["decision"], "allow")
 
+    def test_collector_conformance_posts_canonical_events(self) -> None:
+        seen: list[dict] = []
+
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):  # noqa: N802
+                length = int(self.headers.get("Content-Length", "0"))
+                body = json.loads(self.rfile.read(length))
+                seen.append(body)
+                payload = json.dumps({
+                    "event_id": body["event_id"],
+                    "decision": "allow",
+                    "reason": "collector test",
+                }).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(payload)))
+                self.end_headers()
+                self.wfile.write(payload)
+
+            def log_message(self, *_args):
+                return
+
+        server = HTTPServer(("127.0.0.1", 0), Handler)
+
+        def serve():
+            for _ in range(7):
+                server.handle_request()
+
+        thread = threading.Thread(target=serve, daemon=True)
+        thread.start()
+        try:
+            target = f"http://127.0.0.1:{server.server_port}/event"
+            proc = run_cli("test", "collector", "--target", target, "--token", "tok")
+        finally:
+            server.server_close()
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("Result: pass", proc.stdout)
+        self.assertEqual(len(seen), 7)
+        self.assertIn("ModelResponse", {event["event_type"] for event in seen})
+
 
 if __name__ == "__main__":
     unittest.main()
