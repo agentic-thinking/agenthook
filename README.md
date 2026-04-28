@@ -29,10 +29,10 @@ AgentHook is not:
 
 - a GRC platform
 - a compliance certification
-- a replacement for ISO/IEC 42001, NIST AI RMF, the EU AI Act, OpenTelemetry, CloudEvents, IETF RATS, SPIFFE/SPIRE, in-toto/SLSA, Sigstore, C2PA, Microsoft AGT, OPA, Cedar, or other adjacent standards and policy systems
-- a requirement to use HookBus or CRE-AgentProtect
+- a replacement for ISO/IEC 42001, NIST AI RMF, the EU AI Act, OpenTelemetry, CloudEvents, IETF RATS, SPIFFE/SPIRE, in-toto/SLSA, Sigstore, C2PA, policy engines, or other adjacent standards and policy systems
+- a requirement to use any specific bus, policy engine, subscriber, or vendor runtime
 
-HookBus is the first reference runtime/bus. CRE-AgentProtect is an example policy subscriber. They demonstrate AgentHook; they are not the standard itself.
+Reference implementations may demonstrate AgentHook, but they are not the standard itself. Conforming publishers, buses, and subscribers are intentionally vendor-neutral.
 
 ## Documents
 
@@ -47,7 +47,7 @@ HookBus is the first reference runtime/bus. CRE-AgentProtect is an example polic
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md).
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md).
 
 ## Quick start
 
