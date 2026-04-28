@@ -29,6 +29,15 @@ git commit -s -m "your commit message"
 
 Pull requests with unsigned commits will not be merged. The pull request template includes a DCO checkbox.
 
+Local maintainers should enable the repository hooks after cloning:
+
+```
+git config core.hooksPath .githooks
+chmod +x .githooks/*
+```
+
+The hooks reject unsigned commits and block direct pushes to `main` unless the steward deliberately sets the emergency override variables.
+
 ## Protected main branch
 
 The `main` branch is protected. Changes to AgentHook must land through a pull request, not by direct push.
