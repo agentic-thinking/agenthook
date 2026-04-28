@@ -185,7 +185,7 @@ Minimum shape:
   "event_endpoint": "http://localhost:18800/event",
   "active_subscribers": [
     {
-      "name": "cre-agentprotect-enterprise",
+      "name": "policy-gate",
       "role": "policy_gate",
       "mode": "enforce",
       "events": ["PreToolUse", "UserPromptSubmit"],
@@ -287,7 +287,7 @@ def emit(event_type, **fields):
         "source": "your-runtime",
         **fields,
     }
-    httpx.post("http://hookbus:18800/event", json=event, timeout=5)
+    httpx.post("http://agenthook-collector:18800/event", json=event, timeout=5)
 
 emit("PreToolUse", tool_name="Bash", tool_input={"command": "git push"})
 ```
