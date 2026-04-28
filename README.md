@@ -8,6 +8,11 @@ The specification is **Apache-2.0**. Stewardship sits with **Agentic Thinking Li
 
 The first reference implementation is [HookBus](https://github.com/agentic-thinking/hookbus). Compliant alternative implementations are explicitly invited and will be tested against the same conformance suite once the test rig ships.
 
+The draft technical paper is published on Zenodo:
+
+> Ruocco, P. (2026). *AgentHook: A Runtime Evidence Standard for Auditable AI Agent Governance*. Zenodo. https://doi.org/10.5281/zenodo.19853376
+
+
 ## Why it exists
 
 AI governance frameworks increasingly depend on runtime evidence, not just policy documents. Teams need records sufficient to reconstruct, after the fact, what the model was asked, which tool it selected, what was approved or denied, what subscribers were active, and what the runtime returned.
