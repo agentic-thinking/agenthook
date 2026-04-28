@@ -4,7 +4,6 @@ import argparse
 import json
 import os
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -146,6 +145,9 @@ def cmd_doctor(args) -> int:
 
 
 def cmd_test(args) -> int:
+    if args.kind == "collector":
+        return cmd_test_collector(args)
+
     events = [
         user_prompt_submit(args.source, "conformance", "hello"),
         pre_tool_use(args.source, "conformance", "Bash", {"command": "pwd"}),
@@ -165,6 +167,60 @@ def cmd_test(args) -> int:
     print("Silver: partial (runtime evidence availability depends on adapter)")
     print("Gold: partial (reasoning may be unavailable or redacted)")
     return 1 if failed else 0
+
+
+def _collector_case(name: str, event: dict, target: str, token: str, schema_path: str | None) -> tuple[bool, str]:
+    errors = validate_event(event, schema_path)
+    if errors:
+        return False, "local schema invalid: " + "; ".join(errors)
+    try:
+        result = emit_http(event, target, token)
+    except Exception as exc:
+        return False, f"target error: {exc}"
+    if not isinstance(result, dict):
+        return False, "response is not a JSON object"
+    if "event_id" not in result:
+        return False, "response missing event_id"
+    if result.get("event_id") != event["event_id"]:
+        return False, "response event_id does not match request"
+    decision = result.get("decision")
+    if decision not in {"allow", "deny", "ask"}:
+        return False, "response decision must be allow, deny, or ask"
+    if "reason" not in result:
+        return False, "response missing reason"
+    return True, f"{decision}: {result.get('reason', '')}"
+
+
+def cmd_test_collector(args) -> int:
+    if not args.target:
+        print("error: --target is required for collector tests", file=sys.stderr)
+        return 2
+    token = args.token or os.environ.get("AGENTHOOK_TOKEN", "")
+    source = args.source or "agenthook-conformance"
+    session = "collector-conformance"
+    cases = [
+        ("UserPromptSubmit", user_prompt_submit(source, session, "hello from AgentHook conformance")),
+        ("PreToolUse", pre_tool_use(source, session, "Bash", {"command": "pwd"})),
+        ("PostToolUse", build_event("PostToolUse", source, session, tool_name="Bash", tool_input={"command": "pwd"}, metadata=evidence_defaults(control_point="post_action", exit_code=0, duration_ms=1))),
+        ("ModelResponse", model_response(source, session, response_text="collector conformance response", provider="agenthook")),
+        ("SessionStart", build_event("SessionStart", source, session, metadata=evidence_defaults())),
+        ("SessionEnd", build_event("SessionEnd", source, session, metadata=evidence_defaults())),
+        ("ErrorOccurred", build_event("ErrorOccurred", source, session, metadata=evidence_defaults(error_type="ConformanceSmoke", error_message="synthetic"))),
+    ]
+    failures = 0
+    print("AgentHook collector conformance")
+    print(f"Target: {args.target}")
+    for name, event in cases:
+        ok, detail = _collector_case(name, event, args.target, token, args.schema)
+        if ok:
+            print(f"{name}: pass ({detail})")
+        else:
+            failures += 1
+            print(f"{name}: fail ({detail})")
+            if args.fail_fast:
+                break
+    print("Result:", "pass" if failures == 0 else "fail")
+    return 1 if failures else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -206,9 +262,12 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(func=cmd_doctor)
 
     p = sub.add_parser("test")
-    p.add_argument("kind", choices=["publisher"])
+    p.add_argument("kind", choices=["publisher", "collector"])
     p.add_argument("--source", default="agenthook-cli")
     p.add_argument("--provider", default="")
+    p.add_argument("--target", default="")
+    p.add_argument("--token", default="")
+    p.add_argument("--fail-fast", action="store_true")
     p.set_defaults(func=cmd_test)
 
     args = parser.parse_args(argv)
