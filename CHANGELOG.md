@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Draft Runtime Attestation proposal (`AHP-004`) defining `metadata.runtime_attestation` as a non-breaking way for publishers to declare active runtime controls.
 - Draft `runtime-attestation.schema.json`.
 - Security guidance for the prompt-injection boundary between user-authored policy text and publisher-supplied runtime attestation.
+- `STANDARDS.md` describing how AgentHook complements governance, observability, attestation, provenance, and policy-engine standards without replacing them.
+
+### Changed
+- Repositioned AgentHook as an AI-agent runtime evidence specification, with portfolio governance described as a use case rather than the scope of the standard.
 
 ## [0.1.0] - 2026-04-26
 
