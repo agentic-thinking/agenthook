@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+msg_file="$1"
+
+if ! grep -qE '^Signed-off-by: .+ <.+@.+>$' "$msg_file"; then
+  cat >&2 <<'EOF'
+AgentHook commits require DCO sign-off.
+
+Use:
+  git commit -s -m "your message"
+
+Or amend the current commit:
+  git commit --amend -s --no-edit
+EOF
+  exit 1
+fi
