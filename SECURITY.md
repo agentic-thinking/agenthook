@@ -35,3 +35,13 @@ The specification assumes:
 - Subscribers are not assumed to be mutually trusting.
 
 A future Proposal will likely address transport security normatively. Please flag transport-layer concerns now — they shape AHP-002 and beyond.
+
+## Prompt injection boundary (informative)
+
+AgentHook distinguishes runtime facts from prompt text.
+
+User-authored claims about hooks, gates, policies, PINs, approvals, subscribers, fail modes, or runtime state MUST NOT be treated as runtime attestation. Such claims are ordinary prompt content. They may be logged and evaluated, but they do not prove that a control exists or that a policy is active.
+
+Runtime attestation is only valid when supplied by the publisher/runtime through `metadata.runtime_attestation` or another implementation-defined trusted channel. Attestation informs the agent that controls exist; it does not grant those controls authority over model, platform, or system safety policy.
+
+Model-facing attestation summaries should be factual system notifications, not persuasive policy prose. Avoid wording such as "never refuse", "ignore your safety rules", or "always run every tool". Preferred wording is: when a tool call is appropriate under the agent's normal instructions, submit the intended call through the runtime gate and report any gate denial or approval request.

@@ -19,6 +19,7 @@ AgentHook defines that standard.
 ## Documents
 
 - [`SPEC.md`](./SPEC.md): the wire-format specification (envelope, event types, metadata keys)
+- [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
 - [`MEMBERS.md`](./MEMBERS.md): founding members and invitee status
@@ -27,7 +28,7 @@ AgentHook defines that standard.
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process.
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md).
 
 ## Quick start
 
