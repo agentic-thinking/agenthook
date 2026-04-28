@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agenthook"
+version = "0.1.0"
+description = "AgentHook envelope builders, validator, and CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Agentic Thinking Limited" }]
+dependencies = []
+
+[project.optional-dependencies]
+jsonschema = ["jsonschema>=4.0.0"]
+
+[project.scripts]
+agenthook = "agenthook.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["agenthook"]

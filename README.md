@@ -57,3 +57,18 @@ Pre-v1.0 public draft. Working group composition in progress. Substantive change
 ## Quick start
 
 Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.
+
+### Implementation kit
+
+The first CLI-first implementation kit lives in [`packages/python`](./packages/python).
+
+```bash
+cd packages/python
+python -m agenthook.cli emit --event PreToolUse --source demo --session demo --tool Bash --input '{"command":"pwd"}'
+python -m agenthook.cli validate ../../sample-event.json
+python -m agenthook.cli doctor --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
+python -m agenthook.cli init claude-code --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
+```
+
+The kit is deliberately small: envelope builders, validation, `emit`,
+`doctor`, basic conformance checks, and runtime adapter scaffolding.
