@@ -115,7 +115,7 @@ def cmd_init(args) -> int:
         print(f"runtime not implemented yet: {args.runtime}", file=sys.stderr)
         return 2
     gate = shutil.which("claude-code-gate") or str(Path.home() / ".local/bin/claude-code-gate")
-    if not Path(gate).exists():
+    if not Path(gate).exists() and not args.dry_run:
         print("claude-code-gate not found. Install hookbus-publisher-claude-code first.", file=sys.stderr)
         return 1
     token = args.token or os.environ.get("HOOKBUS_TOKEN") or os.environ.get("AGENTHOOK_TOKEN") or ""

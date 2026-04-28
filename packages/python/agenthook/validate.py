@@ -19,7 +19,28 @@ class ValidationError(Exception):
 
 def load_schema(path: str | Path | None = None) -> dict[str, Any]:
     schema_path = Path(path) if path else _SCHEMA_PATH
-    return json.loads(schema_path.read_text(encoding="utf-8"))
+    if schema_path.exists():
+        return json.loads(schema_path.read_text(encoding="utf-8"))
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "required": ["event_id", "event_type", "timestamp", "source"],
+        "properties": {
+            "schema_version": {"type": "integer"},
+            "event_id": {"type": "string", "format": "uuid"},
+            "event_type": {"type": "string", "enum": sorted(CANONICAL_EVENT_TYPES)},
+            "timestamp": {"type": "string", "format": "date-time"},
+            "source": {"type": "string"},
+            "agent_id": {"type": "string"},
+            "session_id": {"type": "string"},
+            "correlation_id": {"type": "string"},
+            "tool_name": {"type": "string"},
+            "tool_input": {"type": "object"},
+            "metadata": {"type": "object"},
+            "annotations": {"type": "object"},
+        },
+        "additionalProperties": False,
+    }
 
 
 def _fallback_validate(event: dict[str, Any]) -> list[str]:
@@ -79,7 +100,7 @@ def validate_event(event: dict[str, Any], schema_path: str | Path | None = None)
         return _fallback_validate(event)
 
     schema = load_schema(schema_path)
-    validator = jsonschema.Draft202012Validator(schema)
+    validator = jsonschema.Draft202012Validator(schema, format_checker=jsonschema.FormatChecker())
     return [e.message for e in sorted(validator.iter_errors(event), key=lambda e: e.path)]
 
 
