@@ -8,6 +8,7 @@ AgentHook is an open technical specification for AI-agent runtime evidence. It i
 - Subscriber-addressable events for prompts, LLM calls, tool calls, approvals, denials, errors, handoffs, sessions, and runtime attestations
 - Publisher conformance tiers for lifecycle coverage, LLM transcript capture, reasoning capture where exposed, and event correlation
 - Runtime attestation metadata for declaring active controls, subscribers, fail modes, and consolidation behaviour inside the existing envelope
+- Publisher manifests for stable runtime identity, supported event coverage, limitations, installer metadata, and verification status
 
 ## Adjacent Standards and Frameworks
 
@@ -34,6 +35,7 @@ The standard boundary is:
 
 - AgentHook defines the envelope and event semantics.
 - Publishers emit AgentHook-conformant events.
+- Publisher manifests describe publisher identity and lifecycle coverage.
 - Subscribers consume events and return verdicts or evidence.
 - Buses and adapters route events, consolidate sync decisions, and preserve fail-mode behaviour.
 - Governance systems interpret the evidence against their own obligations.

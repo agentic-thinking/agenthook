@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://agenthook.org/schemas/publisher-manifest.v1.json",
+  "title": "AgentHook Publisher Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "publisher_id",
+    "display_name",
+    "maintainer",
+    "runtime",
+    "agenthook",
+    "entrypoints",
+    "config",
+    "limitations",
+    "verification"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "https://agenthook.org/schemas/publisher-manifest.v1.json"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "publisher_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$",
+      "description": "Stable reverse-DNS publisher identifier."
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "maintainer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vendor", "name", "versions_tested"],
+      "properties": {
+        "vendor": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "versions_tested": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "agenthook": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "source", "events"],
+      "properties": {
+        "version": { "type": "string" },
+        "source": { "type": "string", "minLength": 1 },
+        "events": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": ["supported", "partial", "not_exposed", "planned"]
+          },
+          "required": [
+            "SessionStart",
+            "UserPromptSubmit",
+            "PreLLMCall",
+            "PostLLMCall",
+            "PreToolUse",
+            "PostToolUse",
+            "ModelResponse",
+            "SessionEnd",
+            "AgentHandoff",
+            "ErrorOccurred"
+          ]
+        }
+      }
+    },
+    "entrypoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["command", "installer"],
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "installer": { "type": "string", "minLength": 1 }
+      }
+    },
+    "config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["files"],
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["self_attested", "conformance", "last_tested", "commands"],
+      "properties": {
+        "self_attested": { "type": "boolean" },
+        "conformance": {
+          "enum": ["pending", "bronze", "silver", "gold", "not_claimed"]
+        },
+        "last_tested": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "commands": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

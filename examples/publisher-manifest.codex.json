@@ -1,0 +1,49 @@
+{
+  "schema": "https://agenthook.org/schemas/publisher-manifest.v1.json",
+  "schema_version": "1.0",
+  "publisher_id": "uk.agenticthinking.publisher.openai.codex-cli",
+  "display_name": "HookBus Publisher for OpenAI Codex CLI",
+  "maintainer": {
+    "name": "Agentic Thinking Limited",
+    "url": "https://agenticthinking.uk"
+  },
+  "runtime": {
+    "vendor": "OpenAI",
+    "name": "Codex CLI",
+    "versions_tested": ["0.125.0"]
+  },
+  "agenthook": {
+    "version": "0.1",
+    "source": "codex",
+    "events": {
+      "SessionStart": "supported",
+      "UserPromptSubmit": "supported",
+      "PreLLMCall": "not_exposed",
+      "PostLLMCall": "not_exposed",
+      "PreToolUse": "partial",
+      "PostToolUse": "partial",
+      "ModelResponse": "partial",
+      "SessionEnd": "not_exposed",
+      "AgentHandoff": "not_exposed",
+      "ErrorOccurred": "not_exposed"
+    }
+  },
+  "entrypoints": {
+    "command": "bin/codex-gate.js",
+    "installer": "install.sh"
+  },
+  "config": {
+    "files": ["~/.codex/config.toml", "~/.codex/hooks.json"]
+  },
+  "limitations": [
+    "PreToolUse and PostToolUse currently cover Bash hooks.",
+    "Raw LLM call hooks are not exposed by Codex CLI.",
+    "Reasoning content is not exposed."
+  ],
+  "verification": {
+    "self_attested": true,
+    "conformance": "pending",
+    "last_tested": "2026-04-28",
+    "commands": ["npm test"]
+  }
+}
