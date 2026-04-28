@@ -9,6 +9,7 @@ AgentHook is an open technical specification for AI-agent runtime evidence. It i
 - Publisher conformance tiers for lifecycle coverage, LLM transcript capture, reasoning capture where exposed, and event correlation
 - Runtime attestation metadata for declaring active controls, subscribers, fail modes, and consolidation behaviour inside the existing envelope
 - Publisher manifests as an interim layer for stable runtime identity, supported event coverage, limitations, installer metadata, and verification status
+- Identity metadata for shared buses, multi-user sessions, and centrally operated collectors without changing the envelope
 
 ## Adjacent Standards and Frameworks
 

@@ -61,6 +61,44 @@ Every event is a JSON object conforming to the following shape. Field requiremen
 
 The bus (where one is present) MAY enrich an event with `agent_id` derived from the publisher's bearer token. Publishers SHOULD treat any `agent_id` they receive in a response as authoritative.
 
+### Identity metadata
+
+For shared or central collectors, publishers SHOULD include stable, non-secret identity metadata where available. These keys are advisory evidence unless verified or stamped by the collector.
+
+AgentHook deployments MAY be single-publisher local installs, multi-publisher team buses, or centrally shared collectors across organisational boundaries. Identity metadata supports the shared cases without requiring any deployment to use a central collector.
+
+| Metadata key | Type | Purpose |
+|---|---|---|
+| `publisher_id` | string | Stable publisher package/type identifier, usually matching the publisher manifest; not an individual installation |
+| `user_id` | string | Human user or pseudonymous user reference for the session |
+| `account_id` | string | Runtime/provider account reference where distinct from `user_id` |
+| `instance_id` | string | Local publisher/runtime installation instance |
+| `host_id` | string | Machine, container, or workload identity, preferably pseudonymous |
+
+Publishers MUST NOT place secrets, bearer tokens, private credentials, or raw personal data in identity metadata. Central buses SHOULD derive authoritative identity from authentication where possible and MAY overwrite `agent_id` or add verified identity annotations before routing to subscribers.
+
+Pseudonymous identifiers are still attributable operational metadata. Implementers SHOULD treat `user_id`, `account_id`, `instance_id`, and `host_id` as subject to retention, access-control, audit, and cross-border transfer policies. Pseudonymous does not mean anonymous.
+
+Where a bus verifies identity from authentication, it SHOULD keep publisher-supplied claims separate from verified identity, for example:
+
+```json
+{
+  "agent_id": "runtime-instance-01",
+  "metadata": {
+    "publisher_id": "uk.example.publisher.runtime",
+    "instance_id": "runtime-instance-01"
+  },
+  "annotations": {
+    "bus": {
+      "verified_identity": {
+        "method": "bearer_token",
+        "agent_id": "runtime-instance-01"
+      }
+    }
+  }
+}
+```
+
 ## 2. Canonical event types
 
 The specification defines ten canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`.
