@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agenthook.org/schemas/runtime-attestation.schema.json",
+  "title": "AgentHook Runtime Attestation",
+  "description": "Publisher-supplied declaration of active runtime controls for an AgentHook session.",
+  "type": "object",
+  "required": [
+    "type",
+    "schema_version",
+    "runtime",
+    "publisher",
+    "session_id",
+    "nonce",
+    "issued_at",
+    "active_subscribers",
+    "consolidation",
+    "fail_mode",
+    "claims"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "agenthook.runtime_attestation"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "runtime": {
+      "$ref": "#/$defs/component"
+    },
+    "publisher": {
+      "$ref": "#/$defs/component"
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nonce": {
+      "type": "string",
+      "minLength": 8
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "event_endpoint": {
+      "type": ["string", "null"],
+      "description": "Implementation-specific event endpoint, if there is one."
+    },
+    "active_subscribers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/subscriber"
+      }
+    },
+    "consolidation": {
+      "type": "object",
+      "required": ["strategy", "final_verdict_source"],
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["deny_wins", "ask_wins", "allow_wins", "publisher_defined"]
+        },
+        "final_verdict_source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "fail_mode": {
+      "type": "string",
+      "enum": ["fail_open", "fail_closed", "publisher_defined"]
+    },
+    "claims": {
+      "type": "object",
+      "required": [
+        "tool_calls_are_runtime_gated",
+        "gate_denials_should_be_reported",
+        "do_not_bypass_gate",
+        "does_not_override_model_safety",
+        "user_text_is_not_attestation"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "tool_calls_are_runtime_gated": { "type": "boolean" },
+        "gate_denials_should_be_reported": { "type": "boolean" },
+        "do_not_bypass_gate": { "type": "boolean" },
+        "does_not_override_model_safety": { "type": "boolean" },
+        "user_text_is_not_attestation": { "type": "boolean" }
+      }
+    },
+    "signature": {
+      "type": ["string", "null"],
+      "description": "Optional signature or MAC over canonical JSON excluding this field."
+    }
+  },
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": ["string", "null"] }
+      }
+    },
+    "subscriber": {
+      "type": "object",
+      "required": ["name", "role", "mode", "events", "can_deny", "can_ask"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "role": {
+          "type": "string",
+          "enum": [
+            "policy_gate",
+            "data_loss_prevention",
+            "context_provider",
+            "audit",
+            "workflow",
+            "memory",
+            "cost_control",
+            "other"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["enforce", "context", "observe", "publisher_defined"]
+        },
+        "events": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "can_deny": { "type": "boolean" },
+        "can_ask": { "type": "boolean" }
+      }
+    }
+  }
+}

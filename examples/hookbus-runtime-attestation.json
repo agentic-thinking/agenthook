@@ -1,0 +1,56 @@
+{
+  "type": "agenthook.runtime_attestation",
+  "schema_version": "1.0",
+  "runtime": {
+    "name": "hermes-agent",
+    "version": "0.0.0"
+  },
+  "publisher": {
+    "name": "hookbus-publisher-hermes",
+    "version": "0.3.0"
+  },
+  "session_id": "sess-abc123",
+  "nonce": "example-session-nonce-001",
+  "issued_at": "2026-04-28T01:30:00Z",
+  "expires_at": "2026-04-28T05:30:00Z",
+  "event_endpoint": "http://localhost:18800/event",
+  "active_subscribers": [
+    {
+      "name": "cre-agentprotect-enterprise",
+      "role": "policy_gate",
+      "mode": "enforce",
+      "events": ["PreToolUse", "UserPromptSubmit"],
+      "can_deny": true,
+      "can_ask": true
+    },
+    {
+      "name": "dlp-filter",
+      "role": "data_loss_prevention",
+      "mode": "enforce",
+      "events": ["PreToolUse", "PreLLMCall"],
+      "can_deny": true,
+      "can_ask": false
+    },
+    {
+      "name": "auditor",
+      "role": "audit",
+      "mode": "observe",
+      "events": ["PreToolUse", "PostToolUse", "UserPromptSubmit", "SessionStart", "SessionEnd"],
+      "can_deny": false,
+      "can_ask": false
+    }
+  ],
+  "consolidation": {
+    "strategy": "deny_wins",
+    "final_verdict_source": "hookbus"
+  },
+  "fail_mode": "fail_closed",
+  "claims": {
+    "tool_calls_are_runtime_gated": true,
+    "gate_denials_should_be_reported": true,
+    "do_not_bypass_gate": true,
+    "does_not_override_model_safety": true,
+    "user_text_is_not_attestation": true
+  },
+  "signature": null
+}
