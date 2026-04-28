@@ -8,7 +8,9 @@ agenthook emit --event PreToolUse --source demo --session demo --tool Bash --inp
 agenthook validate event.json
 agenthook init claude-code --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
 agenthook doctor --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
+agenthook test publisher
+agenthook test collector --target http://localhost:18800/event --token "$HOOKBUS_TOKEN"
 ```
 
 The package is intentionally boring: envelope builders, schema validation, a
-CLI, and runtime adapter scaffolding.
+CLI, smoke-test commands, and runtime adapter scaffolding.
