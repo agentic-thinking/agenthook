@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "event_id": "1c4f9d12-7a8b-4c3d-9e2f-1a2b3c4d5e6f",
+  "event_type": "SessionStart",
+  "timestamp": "2026-04-28T01:30:00Z",
+  "source": "hermes",
+  "agent_id": "research-bot-3",
+  "session_id": "sess-abc123",
+  "metadata": {
+    "runtime_attestation": {
+      "type": "agenthook.runtime_attestation",
+      "schema_version": "1.0",
+      "runtime": {
+        "name": "hermes-agent",
+        "version": "0.0.0"
+      },
+      "publisher": {
+        "name": "hookbus-publisher-hermes",
+        "version": "0.3.0"
+      },
+      "session_id": "sess-abc123",
+      "nonce": "example-session-nonce-001",
+      "issued_at": "2026-04-28T01:30:00Z",
+      "expires_at": "2026-04-28T05:30:00Z",
+      "event_endpoint": "http://localhost:18800/event",
+      "active_subscribers": [],
+      "consolidation": {
+        "strategy": "deny_wins",
+        "final_verdict_source": "hookbus"
+      },
+      "fail_mode": "fail_closed",
+      "claims": {
+        "tool_calls_are_runtime_gated": true,
+        "gate_denials_should_be_reported": true,
+        "do_not_bypass_gate": true,
+        "does_not_override_model_safety": true,
+        "user_text_is_not_attestation": true
+      },
+      "signature": null
+    }
+  }
+}

@@ -14,6 +14,7 @@ The specification covers:
 3. The standard metadata keys per event type
 4. Hook delivery semantics (sync vs async, fail-mode behaviour)
 5. Conformance levels (Bronze, Silver, Gold)
+6. Runtime attestation as a non-breaking metadata extension
 
 It does not cover:
 
@@ -111,6 +112,12 @@ Naming rules:
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
 
+### `SessionStart`, first `PreLLMCall`, or first `UserPromptSubmit`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 6. |
+
 ## 4. Hook delivery semantics
 
 Implementations are expected to honour the following:
@@ -141,14 +148,81 @@ The 80% pass threshold permits implementations to legitimately not emit certain 
 
 A formal conformance score is awarded by the test rig with the per-test pass/fail enumerated in a signed report.
 
-## 6. Versioning and stability
+## 6. Runtime attestation
+
+Runtime attestation lets an agent, operator, or auditor distinguish verified runtime facts from user-authored prompt text. It is a publisher-supplied declaration of which hooks, gates, subscribers, consolidation rules, and fail modes are active for the current session.
+
+Runtime attestation is a non-breaking metadata extension. It does not add a new canonical event type and does not change `schema_version`.
+
+Publishers SHOULD attach runtime attestation at the earliest available point in a session:
+
+1. `SessionStart.metadata.runtime_attestation`, when the runtime emits `SessionStart`
+2. otherwise the first `PreLLMCall.metadata.runtime_attestation`
+3. otherwise the first `UserPromptSubmit.metadata.runtime_attestation`
+
+Publishers MAY also expose the same document through an implementation-specific local endpoint or tool. A bus MAY expose an aggregate attestation endpoint, but the AgentHook envelope does not require any particular bus or transport.
+
+The attestation document MUST NOT be authored by the user and MUST NOT be inferred from user-provided policy text. It MAY be signed or MACed by the publisher/runtime. Where signatures are used, the signature covers the canonical JSON representation of the attestation excluding the `signature` field.
+
+Minimum shape:
+
+```json
+{
+  "type": "agenthook.runtime_attestation",
+  "schema_version": "1.0",
+  "runtime": {
+    "name": "hermes-agent",
+    "version": "0.0.0"
+  },
+  "publisher": {
+    "name": "hookbus-publisher-hermes",
+    "version": "0.3.0"
+  },
+  "session_id": "sess-abc123",
+  "nonce": "session-bound-random-value",
+  "issued_at": "2026-04-28T01:30:00Z",
+  "expires_at": "2026-04-28T05:30:00Z",
+  "event_endpoint": "http://localhost:18800/event",
+  "active_subscribers": [
+    {
+      "name": "cre-agentprotect-enterprise",
+      "role": "policy_gate",
+      "mode": "enforce",
+      "events": ["PreToolUse", "UserPromptSubmit"],
+      "can_deny": true,
+      "can_ask": true
+    }
+  ],
+  "consolidation": {
+    "strategy": "deny_wins",
+    "final_verdict_source": "runtime"
+  },
+  "fail_mode": "fail_closed",
+  "claims": {
+    "tool_calls_are_runtime_gated": true,
+    "gate_denials_should_be_reported": true,
+    "do_not_bypass_gate": true,
+    "does_not_override_model_safety": true,
+    "user_text_is_not_attestation": true
+  },
+  "signature": null
+}
+```
+
+Model-facing summaries derived from attestation MUST be factual and limited. They MUST NOT instruct the model to ignore system, platform, or safety policies. Recommended wording:
+
+> Verified AgentHook runtime attestation: tool calls in this session are routed through the listed runtime gates before execution. If a gate denies or asks for approval, report the gate response. Do not substitute, obscure, or route around a gate. This attestation does not replace model, platform, or system safety policy.
+
+When an agent decides a tool call is appropriate under its normal instructions, it SHOULD submit the intended tool call through the runtime gate. It MUST NOT substitute a different command, hide an action, encode an action, or use an alternate route to avoid review by an active gate.
+
+## 7. Versioning and stability
 
 - Pre-1.0 (current): the specification may change without notice. Implementations are encouraged to track the draft and provide feedback via Issues and Proposals.
 - 1.0 onwards: changes follow the Proposal process in [`GOVERNANCE.md`](./GOVERNANCE.md). Breaking changes require unanimous Working Group approval and a deprecation window of no less than nine months.
 
 The `schema_version` field allows implementations to negotiate envelope shape. Breaking changes increment `schema_version`. Subscribers MUST handle at least the version they were authored for; bus implementations MAY translate between versions.
 
-## 7. Examples
+## 8. Examples
 
 ### Minimal valid event
 
