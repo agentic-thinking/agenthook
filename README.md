@@ -2,7 +2,7 @@
 
 > **DRAFT — pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
 
-An open specification for the lifecycle hooks every AI agent runtime should expose so that operators, auditors, and regulators can record what an agent did, when, why, and with what reasoning.
+An open technical specification for AI-agent runtime evidence: structured, subscriber-addressable envelopes for lifecycle events, tool calls, human approvals, policy denials, model interactions, and runtime control attestations.
 
 The specification is **Apache-2.0**. Stewardship sits with **Agentic Thinking Limited (UK)** under the commitments set out in [`GOVERNANCE.md`](./GOVERNANCE.md). Adopters benefit from a perpetual no-relicence pledge and a working-group governance model.
 
@@ -10,15 +10,34 @@ The first reference implementation is [HookBus](https://github.com/agentic-think
 
 ## Why it exists
 
-EU AI Act Article 12 (record-keeping obligations) becomes enforceable on **2 August 2026** for high-risk AI systems falling under Annex III categories. Every enterprise deploying agentic AI must demonstrate auditable, transcript-grade records of every action an agent takes. By "transcript-grade" we mean a record sufficient to reconstruct, after the fact, what the model was asked, how it reasoned, and what it returned.
+AI governance frameworks increasingly depend on runtime evidence, not just policy documents. Teams need records sufficient to reconstruct, after the fact, what the model was asked, which tool it selected, what was approved or denied, what subscribers were active, and what the runtime returned.
 
 Agent runtimes today expose hooks inconsistently. Coverage varies between vendors and over time. There is no shared definition of what a complete hook surface looks like, what events must be emitted, or what metadata each event must carry. Without a standard, every enterprise rebuilds the same compliance plumbing per vendor, and every regulator has to evaluate every implementation from scratch.
 
-AgentHook defines that standard.
+AgentHook defines the agent-specific runtime evidence layer that can support governance, audit, policy, memory, observability, and incident-review workflows.
+
+## What it is, and is not
+
+AgentHook is:
+
+- an event grammar for AI-agent lifecycle evidence
+- a portable envelope for publishers and subscribers
+- a way to make prompts, LLM calls, tool calls, approvals, denials, errors, handoffs, sessions, and runtime attestations comparable across runtimes
+- implementation-neutral: any transport, bus, or host language may conform
+
+AgentHook is not:
+
+- a GRC platform
+- a compliance certification
+- a replacement for ISO/IEC 42001, NIST AI RMF, the EU AI Act, OpenTelemetry, CloudEvents, IETF RATS, SPIFFE/SPIRE, in-toto/SLSA, Sigstore, C2PA, Microsoft AGT, OPA, Cedar, or other adjacent standards and policy systems
+- a requirement to use HookBus or CRE-AgentProtect
+
+HookBus is the first reference runtime/bus. CRE-AgentProtect is an example policy subscriber. They demonstrate AgentHook; they are not the standard itself.
 
 ## Documents
 
 - [`SPEC.md`](./SPEC.md): the wire-format specification (envelope, event types, metadata keys)
+- [`STANDARDS.md`](./STANDARDS.md): how AgentHook relates to governance, observability, attestation, provenance, and policy-engine standards
 - [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
