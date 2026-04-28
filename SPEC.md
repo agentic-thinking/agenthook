@@ -15,6 +15,7 @@ The specification covers:
 4. Hook delivery semantics (sync vs async, fail-mode behaviour)
 5. Conformance levels (Bronze, Silver, Gold)
 6. Runtime attestation as a non-breaking metadata extension
+7. Publisher manifests for local-first identity, coverage, and verification metadata
 
 It does not cover:
 
@@ -215,7 +216,28 @@ Model-facing summaries derived from attestation MUST be factual and limited. The
 
 When an agent decides a tool call is appropriate under its normal instructions, it SHOULD submit the intended tool call through the runtime gate. It MUST NOT substitute a different command, hide an action, encode an action, or use an alternate route to avoid review by an active gate.
 
-## 7. Versioning and stability
+## 7. Publisher manifests
+
+An AgentHook publisher SHOULD ship a repository-root `agenthook.publisher.json` file conforming to [`publisher-manifest.schema.json`](./publisher-manifest.schema.json).
+
+The manifest is a local-first, machine-readable declaration of:
+
+- the stable `publisher_id`
+- the runtime and versions tested
+- the AgentHook source label used in envelopes
+- supported, partial, planned, and unavailable lifecycle events
+- installer and command entry points
+- runtime configuration files touched by the publisher
+- known limitations
+- self-attested verification commands and current conformance status
+
+The manifest is not an enforcement document. It MUST NOT contain secrets, bearer tokens, private endpoints, policy rules, or executable install logic. Subscribers MUST treat manifest claims as evidence about publisher coverage, not as authority to allow or deny an action.
+
+Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.1.
+
+Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active.
+
+## 8. Versioning and stability
 
 - Pre-1.0 (current): the specification may change without notice. Implementations are encouraged to track the draft and provide feedback via Issues and Proposals.
 - 1.0 onwards: changes follow the Proposal process in [`GOVERNANCE.md`](./GOVERNANCE.md). Breaking changes require unanimous Working Group approval and a deprecation window of no less than nine months.

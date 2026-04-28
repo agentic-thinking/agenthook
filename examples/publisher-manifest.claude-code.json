@@ -1,0 +1,49 @@
+{
+  "schema": "https://agenthook.org/schemas/publisher-manifest.v1.json",
+  "schema_version": "1.0",
+  "publisher_id": "uk.agenticthinking.publisher.anthropic.claude-code",
+  "display_name": "HookBus Publisher for Anthropic Claude Code",
+  "maintainer": {
+    "name": "Agentic Thinking Limited",
+    "url": "https://agenticthinking.uk"
+  },
+  "runtime": {
+    "vendor": "Anthropic",
+    "name": "Claude Code",
+    "versions_tested": ["2.1.96"]
+  },
+  "agenthook": {
+    "version": "0.1",
+    "source": "claude-code",
+    "events": {
+      "SessionStart": "not_exposed",
+      "UserPromptSubmit": "supported",
+      "PreLLMCall": "not_exposed",
+      "PostLLMCall": "not_exposed",
+      "PreToolUse": "supported",
+      "PostToolUse": "supported",
+      "ModelResponse": "partial",
+      "SessionEnd": "not_exposed",
+      "AgentHandoff": "not_exposed",
+      "ErrorOccurred": "not_exposed"
+    }
+  },
+  "entrypoints": {
+    "command": "bin/claude-code-gate",
+    "installer": "install.sh"
+  },
+  "config": {
+    "files": ["~/.claude/settings.json"]
+  },
+  "limitations": [
+    "Stop hooks are mapped to ModelResponse where transcript data is exposed.",
+    "Raw LLM call hooks are not exposed by Claude Code.",
+    "Readable reasoning content is best-effort and only present if the runtime transcript exposes it."
+  ],
+  "verification": {
+    "self_attested": true,
+    "conformance": "pending",
+    "last_tested": "2026-04-28",
+    "commands": ["python3 -m py_compile bin/claude-code-gate"]
+  }
+}

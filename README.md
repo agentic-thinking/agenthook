@@ -44,6 +44,7 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 - [`SPEC.md`](./SPEC.md): the wire-format specification (envelope, event types, metadata keys)
 - [`STANDARDS.md`](./STANDARDS.md): how AgentHook relates to governance, observability, attestation, provenance, and policy-engine standards
 - [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
+- [`publisher-manifest.schema.json`](./publisher-manifest.schema.json): draft schema for publisher identity, hook coverage, limitations, and verification status
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
 - [`MEMBERS.md`](./MEMBERS.md): founding members and invitee status
@@ -52,11 +53,13 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md).
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Publisher manifests are a draft local-first convention for declaring publisher identity and lifecycle coverage.
 
 ## Quick start
 
 Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.
+
+Publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json) or [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json) for current public publisher examples.
 
 ### Implementation kit
 
