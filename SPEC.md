@@ -5,7 +5,7 @@
 **Editors:** Working Group (see [`MEMBERS.md`](./MEMBERS.md))
 **Licence:** Apache License 2.0
 
-This specification defines the lifecycle events that an AI agent runtime ("publisher") must expose so that external observers ("subscribers") can record, gate, and audit what an agent did, when, why, and with what reasoning. It is implementation-neutral: any transport (HTTP, Unix socket, in-process callback, message queue) and any host language is permitted, provided the wire-format and semantic guarantees defined here are met.
+This specification defines the lifecycle events that an AI agent runtime ("publisher") must expose so that external observers ("subscribers") can record, gate, and audit what an agent did, when, why, and with what reasoning where that reasoning is exposed by the runtime or provider. It is implementation-neutral: any transport (HTTP, Unix socket, in-process callback, message queue) and any host language is permitted, provided the wire-format and semantic guarantees defined here are met.
 
 The specification covers:
 
@@ -100,7 +100,7 @@ Naming rules:
 | `reasoning_chars` | integer | Length of the original reasoning before any truncation (for filtering/indexing without loading full payload) |
 | `response_content` | string | Reply text delivered to the caller. Truncation to ~4 KiB is RECOMMENDED |
 
-`reasoning_content` together with `response_content` constitutes a *transcript-grade* record of the LLM exchange. By "transcript-grade" we mean a record sufficient to reconstruct, after the fact, what the model was asked, how it reasoned, and what it returned, without consulting the original session transport. This is the level of evidence required by EU AI Act Article 12 record-keeping for high-risk AI systems (Annex III categories), and equivalent regulatory regimes for accountable autonomous systems.
+`reasoning_content` together with `response_content` constitutes a *transcript-grade* record of the LLM exchange when the runtime or provider exposes reasoning. By "transcript-grade" we mean a record sufficient to reconstruct, after the fact, what the model was asked, what reasoning was available to the runtime, and what it returned, without consulting the original session transport. This can support record-keeping obligations such as EU AI Act Article 12 for high-risk AI systems, but AgentHook does not itself certify legal compliance.
 
 ### `PreToolUse` and `PostToolUse`
 

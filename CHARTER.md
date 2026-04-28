@@ -49,7 +49,7 @@ The steward will transfer stewardship of the specification to a neutral, vendor-
 
 - at least three of the leading commercial agent runtime providers have implemented AgentHook natively in their published runtime;
 - at least three independent open-source agent runtimes have implemented AgentHook natively, and at least one alternative AgentHook-conformant collector implementation exists in the wild that is not operated by the steward;
-- the European AI Office, an equivalent body of the European Commission, or a Member State competent authority has cited the specification in formal published guidance.
+- the European AI Office, NIST, the UK AI Safety Institute, an equivalent body of the European Commission, or a Member State competent authority has cited the specification in formal published guidance.
 
 The steward shall not condition the transfer on a specific calendar date. The steward shall publish the working group's interpretation of "leading commercial agent runtime providers" at the time of transfer, with reasoning.
 

@@ -2,7 +2,14 @@
 
 The conformance test suite verifies that a publisher implementation emits events that match the AgentHook specification at one of three tiers (Bronze, Silver, Gold; see [`SPEC.md`](../SPEC.md) section 5).
 
-The suite is **not yet implemented**. It will ship alongside specification v1.0.
+The formal Bronze/Silver/Gold conformance suite is **not yet implemented**. It will ship alongside specification v1.0.
+
+The Python implementation kit already includes smoke-test commands for early adopters:
+
+- `agenthook test publisher` checks locally generated sample events against the draft envelope schema.
+- `agenthook test collector --target <url>` posts representative lifecycle events to a collector or bus and verifies that the response has the expected decision shape.
+
+These smoke tests are useful for development, but they are not a formal conformance score and carry no certification value.
 
 ## Planned shape
 
@@ -30,7 +37,7 @@ Cost-recovery fees are permitted for the hosted service (see [`GOVERNANCE.md`](.
 
 ### Conformance registry
 
-Once the rig ships, conformant implementations and their tier are listed in `REGISTRY.md` (planned), updated automatically on each successful test run. Procurement teams can reference the registry directly when evaluating agent runtimes for compliance with EU AI Act Article 12.
+Once the rig ships, conformant implementations and their tier are listed in `REGISTRY.md` (planned), updated automatically on each successful test run. Procurement teams can reference the registry directly when evaluating runtime evidence support in agent runtimes. The registry is an interoperability aid, not a legal compliance certification.
 
 ## Test categories (planned, illustrative)
 
