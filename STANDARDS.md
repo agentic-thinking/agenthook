@@ -17,7 +17,7 @@ AgentHook is an open technical specification for AI-agent runtime evidence. It i
 | Observability and event transport | OpenTelemetry, CloudEvents, W3C Trace Context | Telemetry transport, traces, spans, events, and correlation | AgentHook defines the AI-agent lifecycle semantics carried by those systems. |
 | Attestation, identity, and provenance | IETF RATS, SPIFFE/SPIRE, in-toto/SLSA, Sigstore | Workload identity, supply-chain provenance, signed attestations, and verification patterns | AgentHook applies runtime attestation patterns to active agent controls and subscribers. |
 | Content provenance | C2PA | Provenance metadata for digital media and generated content | AgentHook records agent runtime behaviour around content creation; it does not replace media provenance standards. |
-| Policy engines and controls | Microsoft AGT, OPA, Cedar, CRE-AgentProtect, custom subscribers | Deterministic policy checks, semantic gates, allow/deny/ask decisions, redaction, and workflow routing | AgentHook carries the event and verdict grammar; policy engines decide what to do. |
+| Policy engines and controls | Deterministic policy engines, semantic gates, workflow systems, redaction systems, custom subscribers | Policy checks, allow/deny/ask decisions, redaction, enrichment, and workflow routing | AgentHook carries the event and verdict grammar; policy engines decide what to do. |
 | GRC and evidence systems | Existing audit, risk, and compliance platforms | Control mapping, ownership, reporting, remediation, and legal workflows | AgentHook feeds comparable runtime evidence into these systems; it is not a GRC platform. |
 
 ## Portfolio Governance Use Case
@@ -28,7 +28,7 @@ This does not mean AgentHook is a portfolio governance platform. It means AgentH
 
 ## Reference Implementations
 
-HookBus is the first reference runtime/bus for AgentHook events. CRE-AgentProtect is an example policy subscriber. They are useful proving grounds for the specification, but conforming implementations do not need to use either project.
+Reference implementations are useful proving grounds for the specification, but conforming implementations do not need to use any specific bus, policy engine, subscriber, or vendor runtime.
 
 The standard boundary is:
 
