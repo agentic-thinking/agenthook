@@ -15,7 +15,7 @@ Direct pushes to AgentHook main are blocked.
 
 Create a branch, commit with DCO sign-off, and open a pull request.
 Override only for steward emergency fixes:
-  AGENTHOOK_ALLOW_DIRECT_MAIN=1 LEO_OK_TO_PUSH=1 git push $remote_name main
+  AGENTHOOK_ALLOW_DIRECT_MAIN=1 AGENTHOOK_STEWARD_OK_TO_PUSH=1 git push $remote_name main
 EOF
       blocked=1
       continue
@@ -41,7 +41,7 @@ if [ "$blocked" -ne 0 ]; then
   exit 1
 fi
 
-if [ "${AGENTHOOK_ALLOW_DIRECT_MAIN:-}" = "1" ] && [ "${LEO_OK_TO_PUSH:-}" != "1" ]; then
-  echo "Emergency direct-main override also requires LEO_OK_TO_PUSH=1." >&2
+if [ "${AGENTHOOK_ALLOW_DIRECT_MAIN:-}" = "1" ] && [ "${AGENTHOOK_STEWARD_OK_TO_PUSH:-}" != "1" ]; then
+  echo "Emergency direct-main override also requires AGENTHOOK_STEWARD_OK_TO_PUSH=1." >&2
   exit 1
 fi
