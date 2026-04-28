@@ -11,9 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Draft `runtime-attestation.schema.json`.
 - Security guidance for the prompt-injection boundary between user-authored policy text and publisher-supplied runtime attestation.
 - `STANDARDS.md` describing how AgentHook complements governance, observability, attestation, provenance, and policy-engine standards without replacing them.
+- Draft Governance Context Metadata proposal (`AHP-005`) defining `metadata.governance_context` as advisory task, policy, and workflow context inside the existing envelope.
 
 ### Changed
 - Repositioned AgentHook as an AI-agent runtime evidence specification, with portfolio governance described as a use case rather than the scope of the standard.
+- Removed product-specific policy subscriber examples from steward-facing standards positioning.
 
 ## [0.1.0] - 2026-04-26
 
