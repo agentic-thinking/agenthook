@@ -29,6 +29,20 @@ git commit -s -m "your commit message"
 
 Pull requests with unsigned commits will not be merged. The pull request template includes a DCO checkbox.
 
+## Protected main branch
+
+The `main` branch is protected. Changes to AgentHook must land through a pull request, not by direct push.
+
+Required process:
+
+1. Create a branch from the latest `main`.
+2. Commit with DCO sign-off using `git commit -s`.
+3. Open a pull request against `main`.
+4. Wait for the DCO check to pass.
+5. Merge through GitHub after the required review/approval path for the change type.
+
+Direct pushes to `main`, force-pushes to `main`, and unsigned commits are not acceptable for this repository. If a direct push happens by mistake, correct it by opening a signed revert pull request and re-landing the change through a signed pull request.
+
 ## Licensing of contributions
 
 By submitting a contribution you agree that your contribution is licensed under the same Apache License 2.0 that covers the specification (see [`LICENSE`](./LICENSE)). Per [`CHARTER.md`](./CHARTER.md), the licence may not be changed by the steward or any successor.
