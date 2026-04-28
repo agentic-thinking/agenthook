@@ -15,7 +15,7 @@ The specification covers:
 4. Hook delivery semantics (sync vs async, fail-mode behaviour)
 5. Conformance levels (Bronze, Silver, Gold)
 6. Runtime attestation as a non-breaking metadata extension
-7. Publisher manifests for local-first identity, coverage, and verification metadata
+7. Publisher manifests as an interim local-first identity, coverage, and verification layer
 
 It does not cover:
 
@@ -218,9 +218,9 @@ When an agent decides a tool call is appropriate under its normal instructions, 
 
 ## 7. Publisher manifests
 
-An AgentHook publisher SHOULD ship a repository-root `agenthook.publisher.json` file conforming to [`publisher-manifest.schema.json`](./publisher-manifest.schema.json).
+Until agent runtimes emit AgentHook natively, an AgentHook publisher SHOULD ship a repository-root `agenthook.publisher.json` file conforming to [`publisher-manifest.schema.json`](./publisher-manifest.schema.json).
 
-The manifest is a local-first, machine-readable declaration of:
+The manifest is an interim local-first, machine-readable declaration of:
 
 - the stable `publisher_id`
 - the runtime and versions tested
@@ -235,7 +235,7 @@ The manifest is not an enforcement document. It MUST NOT contain secrets, bearer
 
 Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.1.
 
-Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active.
+Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active. Native AgentHook runtimes may expose equivalent manifest metadata through their own standard implementation once the draft reaches stable standard status.
 
 ## 8. Versioning and stability
 
