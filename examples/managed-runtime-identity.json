@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "event_id": "550e8400-e29b-41d4-a716-446655440006",
+  "event_type": "PreToolUse",
+  "timestamp": "2026-04-29T09:30:00Z",
+  "source": "example-runtime",
+  "agent_id": "runtime-instance-01",
+  "session_id": "sess_abc123",
+  "tool_name": "Shell",
+  "tool_input": {
+    "command": "pwd"
+  },
+  "metadata": {
+    "publisher_id": "org.example.publisher.runtime",
+    "instance_id": "pubinst_7f91c2",
+    "managed_runtime": {
+      "publisher_id": "org.example.publisher.runtime",
+      "runtime_id": "example-runtime",
+      "instance_id": "pubinst_7f91c2",
+      "session_id": "sess_abc123",
+      "user_ref": "user_8a21",
+      "device_ref": "device_042",
+      "approval_ref": "approval_12345",
+      "registration_status": "registered",
+      "approval_status": "approved",
+      "verification_strength": "registered"
+    }
+  },
+  "annotations": {
+    "collector": {
+      "managed_runtime_verified": true,
+      "verification_strength": "registered"
+    }
+  }
+}
