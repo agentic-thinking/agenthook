@@ -16,6 +16,7 @@ The specification covers:
 5. Conformance levels (Bronze, Silver, Gold)
 6. Runtime attestation as a non-breaking metadata extension
 7. Publisher manifests as an interim local-first identity, coverage, and verification layer
+8. Managed runtime identity and approval metadata for enterprise deployments
 
 It does not cover:
 
@@ -79,6 +80,57 @@ Publishers MUST NOT place secrets, bearer tokens, private credentials, or raw pe
 
 Pseudonymous identifiers are still attributable operational metadata. Implementers SHOULD treat `user_id`, `account_id`, `instance_id`, and `host_id` as subject to retention, access-control, audit, and cross-border transfer policies. Pseudonymous does not mean anonymous.
 
+### Managed runtime identity
+
+Enterprise deployments often need to distinguish an approved user from an approved runtime instance. A user may be authorised to use a runtime family, but a specific session is still unmanaged if the publisher is missing, the instance is unknown, or the event cannot be tied to an approved device or workload.
+
+Publishers MAY include managed runtime identity metadata inside `metadata.managed_runtime`. This object describes the stable publisher installation that emitted the event. It is not a permission grant by itself.
+
+Minimum shape:
+
+```json
+{
+  "metadata": {
+    "managed_runtime": {
+      "publisher_id": "org.example.publisher.codex-cli",
+      "runtime_id": "codex-cli",
+      "instance_id": "pubinst_7f91c2",
+      "session_id": "sess_abc123",
+      "user_ref": "user_8a21",
+      "device_ref": "device_042",
+      "approval_ref": "approval_12345",
+      "registration_status": "registered",
+      "approval_status": "approved",
+      "verification_strength": "registered"
+    }
+  }
+}
+```
+
+| Field | Type | Purpose |
+|---|---|---|
+| `publisher_id` | string | Stable publisher package/type identifier |
+| `runtime_id` | string | Runtime family or product identifier |
+| `instance_id` | string | Stable local publisher/runtime installation identity. This SHOULD persist across sessions until explicitly rotated or revoked |
+| `session_id` | string | Current runtime session. This SHOULD change per session and SHOULD match the envelope `session_id` where possible |
+| `user_ref` | string | Pseudonymous user, account, or principal reference |
+| `device_ref` | string | Pseudonymous device, host, container, or workload reference |
+| `approval_ref` | string | Optional reference to an enterprise approval, change ticket, registry entry, or workflow item |
+| `registration_status` | enum | `unregistered`, `registered`, `revoked`, or `unknown` |
+| `approval_status` | enum | `approved`, `pending`, `denied`, `expired`, or `unknown` |
+| `verification_strength` | enum | `self_declared`, `registered`, `signed`, or `device_attested` |
+
+`instance_id` is the stable identity that lets an enterprise recognise "this installed publisher on this device or workload" across multiple sessions. `session_id` remains per-session. `event_id` remains per-event.
+
+Verification strength semantics:
+
+- `self_declared`: the publisher supplied the fields, but no external registry or signature has verified them.
+- `registered`: a collector, gateway, or policy subscriber matched the instance against an enterprise registry.
+- `signed`: the event or attestation is signed or MACed by a key bound to the registered instance.
+- `device_attested`: the instance is also bound to a verified device, workload identity, MDM record, SPIFFE identity, TPM-backed attestation, or equivalent enterprise control.
+
+Consumers MUST treat `managed_runtime` as evidence, not authority. A publisher claiming `approval_status: "approved"` MUST NOT be sufficient for an allow decision unless a subscriber, collector, gateway, or enterprise registry independently verifies the claim. Gateways and policy subscribers SHOULD be able to block, ask, quarantine, or route unmanaged AI activity when `managed_runtime` is absent, unknown, revoked, expired, or below the required `verification_strength`.
+
 Where a bus verifies identity from authentication, it SHOULD keep publisher-supplied claims separate from verified identity, for example:
 
 ```json
@@ -86,13 +138,23 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
   "agent_id": "runtime-instance-01",
   "metadata": {
     "publisher_id": "uk.example.publisher.runtime",
-    "instance_id": "runtime-instance-01"
+    "instance_id": "runtime-instance-01",
+    "managed_runtime": {
+      "publisher_id": "uk.example.publisher.runtime",
+      "runtime_id": "example-runtime",
+      "instance_id": "runtime-instance-01",
+      "registration_status": "registered",
+      "approval_status": "approved",
+      "verification_strength": "registered"
+    }
   },
   "annotations": {
     "bus": {
       "verified_identity": {
         "method": "bearer_token",
-        "agent_id": "runtime-instance-01"
+        "agent_id": "runtime-instance-01",
+        "managed_runtime_verified": true,
+        "verification_strength": "registered"
       }
     }
   }

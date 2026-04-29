@@ -62,3 +62,9 @@ The Working Group expects the following Proposals in early development:
 - `AHP-003` — define the v1.0 conformance scoring methodology
 
 These will be drafted by the editor team and circulated for Working Group review ahead of the first scheduled meeting.
+
+## Active Drafts
+
+- [`AHP-004` — Runtime Attestation](./AHP-004-runtime-attestation.md)
+- [`AHP-005` — Governance Context Metadata](./AHP-005-governance-context-metadata.md)
+- [`AHP-006` — Managed Runtime Identity](./AHP-006-managed-runtime-identity.md)
