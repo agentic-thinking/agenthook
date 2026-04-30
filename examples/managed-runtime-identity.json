@@ -21,15 +21,32 @@
       "user_ref": "user_8a21",
       "device_ref": "device_042",
       "approval_ref": "approval_12345",
+      "registry_ref": "registry_entry_9c12",
       "registration_status": "registered",
       "approval_status": "approved",
-      "verification_strength": "registered"
+      "verification_strength": "registered",
+      "device_registry": {
+        "registry_id": "org.example.mdm",
+        "registry_type": "mdm",
+        "entry_ref": "mdm_device_042",
+        "binding": "device",
+        "posture": "compliant",
+        "last_verified_at": "2026-04-29T09:25:00Z"
+      }
     }
   },
   "annotations": {
     "collector": {
       "managed_runtime_verified": true,
-      "verification_strength": "registered"
+      "registry_verified": true,
+      "verification_strength": "device_attested",
+      "verified_registry": {
+        "registry_id": "org.example.mdm",
+        "registry_type": "mdm",
+        "entry_ref": "mdm_device_042",
+        "posture": "compliant",
+        "verified_at": "2026-04-29T09:30:00Z"
+      }
     }
   }
 }

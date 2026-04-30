@@ -67,4 +67,4 @@ These will be drafted by the editor team and circulated for Working Group review
 
 - [`AHP-004` — Runtime Attestation](./AHP-004-runtime-attestation.md)
 - [`AHP-005` — Governance Context Metadata](./AHP-005-governance-context-metadata.md)
-- [`AHP-006` — Managed Runtime Identity](./AHP-006-managed-runtime-identity.md)
+- [`AHP-006` — Managed Runtime Identity and Device Registry](./AHP-006-managed-runtime-identity.md)
