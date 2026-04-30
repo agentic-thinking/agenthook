@@ -1,0 +1,52 @@
+{
+  "schema": "https://agenthook.org/schemas/publisher-manifest.v1.json",
+  "schema_version": "1.0",
+  "publisher_id": "org.agenthook.publisher.lily-flight-test",
+  "display_name": "Lily Flight Test",
+  "maintainer": {
+    "name": "Agentic Thinking Limited",
+    "url": "https://agenticthinking.uk"
+  },
+  "runtime": {
+    "vendor": "AgentHook",
+    "name": "Lily Flight Test",
+    "versions_tested": ["0.1.0"]
+  },
+  "agenthook": {
+    "version": "0.1",
+    "source": "lily-flight",
+    "events": {
+      "SessionStart": "supported",
+      "UserPromptSubmit": "supported",
+      "PreLLMCall": "supported",
+      "PostLLMCall": "supported",
+      "PreToolUse": "supported",
+      "PostToolUse": "supported",
+      "ModelResponse": "supported",
+      "SessionEnd": "supported",
+      "AgentHandoff": "supported",
+      "ErrorOccurred": "supported"
+    }
+  },
+  "entrypoints": {
+    "command": "lily-flight --preflight",
+    "installer": "pip install -e packages/lily-flight-test"
+  },
+  "config": {
+    "files": ["AGENTHOOK_COLLECTOR_URL", "AGENTHOOK_COLLECTOR_TOKEN", "AGENTHOOK_SOURCE"]
+  },
+  "limitations": [
+    "This is a deterministic conformance flight-test fixture, not a production SDK or autonomous agent.",
+    "The default preflight uses synthetic model, tool, error, and handoff events to exercise the complete AgentHook hook surface against any compatible collector or bus.",
+    "The optional reasoning-smoke command requires private provider credentials supplied outside the repository."
+  ],
+  "verification": {
+    "self_attested": true,
+    "conformance": "gold",
+    "last_tested": "2026-04-30",
+    "commands": [
+      "python3 -m pytest -q packages/lily-flight-test",
+      "lily-flight --preflight"
+    ]
+  }
+}

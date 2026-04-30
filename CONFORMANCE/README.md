@@ -11,6 +11,30 @@ The Python implementation kit already includes smoke-test commands for early ado
 
 These smoke tests are useful for development, but they are not a formal conformance score and carry no certification value.
 
+## Lily Flight Test
+
+[`packages/lily-flight-test`](../packages/lily-flight-test) is a minimal
+conformance fixture for exercising the complete AgentHook hook surface through a
+collector or bus.
+
+```bash
+cd packages/lily-flight-test
+python3 -m pip install -e .
+python3 -m pytest -q
+lily-flight --preflight
+```
+
+The preflight emits all ten canonical event types in one deterministic session:
+`SessionStart`, `UserPromptSubmit`, `PreLLMCall`, `PostLLMCall`,
+`ModelResponse`, `PreToolUse`, `PostToolUse`, `AgentHandoff`,
+`ErrorOccurred`, and `SessionEnd`.
+
+The fixture is self-attested as Gold against the current v0.1 draft because it
+emits the complete lifecycle surface, includes matched LLM and tool pairs,
+carries reasoning metadata in `ModelResponse`, and sets correlation IDs across
+LLM, tool, and handoff segments. This is a development signal, not formal
+certification. See [`lily-flight-test.md`](./lily-flight-test.md).
+
 ## Planned shape
 
 ### Open-source self-test rig
