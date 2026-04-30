@@ -80,11 +80,13 @@ Publishers MUST NOT place secrets, bearer tokens, private credentials, or raw pe
 
 Pseudonymous identifiers are still attributable operational metadata. Implementers SHOULD treat `user_id`, `account_id`, `instance_id`, and `host_id` as subject to retention, access-control, audit, and cross-border transfer policies. Pseudonymous does not mean anonymous.
 
-### Managed runtime identity
+### Managed runtime identity and device registry
 
-Enterprise deployments often need to distinguish an approved user from an approved runtime instance. A user may be authorised to use a runtime family, but a specific session is still unmanaged if the publisher is missing, the instance is unknown, or the event cannot be tied to an approved device or workload.
+Enterprise deployments often need to distinguish an approved user from an approved runtime instance and an approved device or workload. A user may be authorised to use a runtime family or API key, but a specific session is still unmanaged if the publisher is missing, the instance is unknown, or the event cannot be tied to an approved device, host, container, or workload.
 
-Publishers MAY include managed runtime identity metadata inside `metadata.managed_runtime`. This object describes the stable publisher installation that emitted the event. It is not a permission grant by itself.
+Publishers MAY include managed runtime identity metadata inside `metadata.managed_runtime`. This object describes the stable publisher installation that emitted the event, plus optional registry context for the device or workload that ran it. It is not a permission grant by itself.
+
+AgentHook does not claim to discover every AI tool, model client, API call, or browser session on an enterprise network. Managed runtime identity applies to participating publishers and to integrated enterprise controls that emit comparable AgentHook evidence. Activity outside the managed runtime registry remains the responsibility of the implementing organisation's MDM, EDR, proxy, SASE, CASB, SIEM, identity governance, procurement, and acceptable-use enforcement.
 
 Minimum shape:
 
@@ -99,9 +101,18 @@ Minimum shape:
       "user_ref": "user_8a21",
       "device_ref": "device_042",
       "approval_ref": "approval_12345",
+      "registry_ref": "registry_entry_9c12",
       "registration_status": "registered",
       "approval_status": "approved",
-      "verification_strength": "registered"
+      "verification_strength": "registered",
+      "device_registry": {
+        "registry_id": "org.example.mdm",
+        "registry_type": "mdm",
+        "entry_ref": "mdm_device_042",
+        "binding": "device",
+        "posture": "compliant",
+        "last_verified_at": "2026-04-29T09:25:00Z"
+      }
     }
   }
 }
@@ -116,11 +127,25 @@ Minimum shape:
 | `user_ref` | string | Pseudonymous user, account, or principal reference |
 | `device_ref` | string | Pseudonymous device, host, container, or workload reference |
 | `approval_ref` | string | Optional reference to an enterprise approval, change ticket, registry entry, or workflow item |
+| `registry_ref` | string | Optional reference to the enterprise registry entry for this publisher/runtime instance |
 | `registration_status` | enum | `unregistered`, `registered`, `revoked`, or `unknown` |
 | `approval_status` | enum | `approved`, `pending`, `denied`, `expired`, or `unknown` |
 | `verification_strength` | enum | `self_declared`, `registered`, `signed`, or `device_attested` |
+| `device_registry` | object | Optional advisory device, workload, or host registry binding |
 
-`instance_id` is the stable identity that lets an enterprise recognise "this installed publisher on this device or workload" across multiple sessions. `session_id` remains per-session. `event_id` remains per-event.
+`device_registry` is intentionally generic. It MAY represent MDM, CMDB, EDR, IAM, SPIFFE/SPIRE, Kubernetes workload identity, TPM-backed attestation, VDI inventory, a cloud instance registry, or a manual enterprise register.
+
+| Device registry field | Type | Purpose |
+|---|---|---|
+| `registry_id` | string | Stable identifier for the registry or control plane |
+| `registry_type` | enum | `mdm`, `cmdb`, `edr`, `iam`, `spiffe`, `kubernetes`, `cloud`, `tpm`, `vdi`, `manual`, or `other` |
+| `entry_ref` | string | Pseudonymous registry entry reference |
+| `binding` | enum | `device`, `host`, `container`, `workload`, `user_device`, or `service_account` |
+| `posture` | enum | `compliant`, `non_compliant`, `unknown`, `not_checked`, or `not_applicable` |
+| `last_verified_at` | string | ISO 8601 timestamp for the last registry/posture verification |
+| `expires_at` | string | Optional expiry for the registry binding or posture check |
+
+`instance_id` is the stable identity that lets an enterprise recognise "this installed publisher on this device or workload" across multiple sessions. `device_ref` links that runtime instance to the host, device, container, or workload where it ran. `session_id` remains per-session. `event_id` remains per-event.
 
 Verification strength semantics:
 
@@ -129,7 +154,7 @@ Verification strength semantics:
 - `signed`: the event or attestation is signed or MACed by a key bound to the registered instance.
 - `device_attested`: the instance is also bound to a verified device, workload identity, MDM record, SPIFFE identity, TPM-backed attestation, or equivalent enterprise control.
 
-Consumers MUST treat `managed_runtime` as evidence, not authority. A publisher claiming `approval_status: "approved"` MUST NOT be sufficient for an allow decision unless a subscriber, collector, gateway, or enterprise registry independently verifies the claim. Gateways and policy subscribers SHOULD be able to block, ask, quarantine, or route unmanaged AI activity when `managed_runtime` is absent, unknown, revoked, expired, or below the required `verification_strength`.
+Consumers MUST treat `managed_runtime` as evidence, not authority. A publisher claiming `approval_status: "approved"` MUST NOT be sufficient for an allow decision unless a subscriber, collector, gateway, or enterprise registry independently verifies the claim. Gateways and policy subscribers SHOULD be able to block, ask, quarantine, or route activity from participating publishers or integrated enterprise controls when `managed_runtime` is absent, unknown, revoked, expired, below the required `verification_strength`, or not bound to an approved device/workload registry entry. Implementations MUST NOT claim complete network-wide discovery unless integrated with enterprise controls that provide that visibility.
 
 Where a bus verifies identity from authentication, it SHOULD keep publisher-supplied claims separate from verified identity, for example:
 
@@ -143,9 +168,18 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
       "publisher_id": "uk.example.publisher.runtime",
       "runtime_id": "example-runtime",
       "instance_id": "runtime-instance-01",
+      "device_ref": "device_042",
+      "registry_ref": "registry_entry_9c12",
       "registration_status": "registered",
       "approval_status": "approved",
-      "verification_strength": "registered"
+      "verification_strength": "registered",
+      "device_registry": {
+        "registry_id": "org.example.mdm",
+        "registry_type": "mdm",
+        "entry_ref": "mdm_device_042",
+        "binding": "device",
+        "posture": "compliant"
+      }
     }
   },
   "annotations": {
@@ -154,7 +188,15 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
         "method": "bearer_token",
         "agent_id": "runtime-instance-01",
         "managed_runtime_verified": true,
-        "verification_strength": "registered"
+        "registry_verified": true,
+        "verification_strength": "device_attested",
+        "verified_registry": {
+          "registry_id": "org.example.mdm",
+          "registry_type": "mdm",
+          "entry_ref": "mdm_device_042",
+          "posture": "compliant",
+          "verified_at": "2026-04-29T09:30:00Z"
+        }
       }
     }
   }

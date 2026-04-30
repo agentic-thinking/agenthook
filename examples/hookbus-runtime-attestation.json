@@ -16,7 +16,7 @@
   "event_endpoint": "http://localhost:18800/event",
   "active_subscribers": [
     {
-      "name": "cre-agentprotect-enterprise",
+      "name": "cre-agentprotect",
       "role": "policy_gate",
       "mode": "enforce",
       "events": ["PreToolUse", "UserPromptSubmit"],
