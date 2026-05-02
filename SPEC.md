@@ -38,6 +38,7 @@ Every event is a JSON object conforming to the following shape. Field requiremen
   "agent_id": "team-alpha-bot",
   "session_id": "session-abc123",
   "correlation_id": "run-7f3b9a2e",
+  "evidence_phase": "pre_commit",
   "tool_name": "Bash",
   "tool_input": { "command": "git push origin main" },
   "metadata": { "model": "claude-sonnet-4-6", "...": "..." },
@@ -55,12 +56,21 @@ Every event is a JSON object conforming to the following shape. Field requiremen
 | `agent_id` | string | no | Specific instance of the publisher (set by the operator or the bus from a bearer token) |
 | `session_id` | string | no | Groups events within one agent session |
 | `correlation_id` | string | no | Links related events across sessions (multi-agent handoff, retries, parent-child agent calls) |
+| `evidence_phase` | string enum | no | Evidence class for this event: `pre_commit`, `post_hoc`, or `observational` |
 | `tool_name` | string | for `PreToolUse` and `PostToolUse` | Which tool the agent is calling |
 | `tool_input` | object | no | Tool-specific input. Publishers MUST NOT validate; subscribers decide what matters |
 | `metadata` | object | no | Hook-specific structured data (see section 3) |
 | `annotations` | object | no | Free-form subscriber/operator notes; publishers SHOULD NOT depend on these |
 
 The bus (where one is present) MAY enrich an event with `agent_id` derived from the publisher's bearer token. Publishers SHOULD treat any `agent_id` they receive in a response as authoritative.
+
+`evidence_phase` distinguishes the audit meaning of an event from its event name:
+
+- `pre_commit`: the event was emitted before the action committed and, where applicable, the publisher waited for the configured admission decision or fail-mode.
+- `post_hoc`: the event was emitted after the action committed.
+- `observational`: the event records runtime state or model output and is not represented as an authorisation receipt.
+
+Publishers MUST NOT represent `post_hoc` or `observational` events as equivalent to `pre_commit` authorisation evidence.
 
 ### Identity metadata
 
@@ -249,7 +259,10 @@ Naming rules:
 
 | Key | Type | Purpose |
 |---|---|---|
+| `tool_call_id` | string (UUID) | Stable identifier linking a `PreToolUse` event to the corresponding `PostToolUse`, denial, or error event |
+| `admission_verdict` | object | Consolidated verdict for admission-bound `PreToolUse`: `verdict`, `reason`, optional `subscriber`, and optional `claim_reference` |
 | `estimated_usd` | number | Cost estimate (set by a budget subscriber, stamped onto the event) |
+| `tool_input_executed` | object | Tool input actually executed (`PostToolUse` only). SHOULD match the admitted `PreToolUse.tool_input` unless the publisher records an explicit mutation reason |
 | `duration_ms` | integer | Tool wall-clock duration (`PostToolUse` only) |
 | `exit_code` | integer | Tool exit code where applicable (`PostToolUse` only) |
 
@@ -269,7 +282,10 @@ Implementations are expected to honour the following:
   - **fail-open**: on subscriber timeout or unreachable bus, the action proceeds. Default for environments where availability outranks policy enforcement.
   - **fail-closed**: on subscriber timeout or unreachable bus, the action is denied. Default for regulated environments where missing audit coverage is itself a compliance failure.
 
-  Conforming publishers MUST default to fail-closed when the publisher cannot determine the deployment context, and MUST log every fail-mode-triggered allow or deny.
+  Conforming publishers MUST default to fail-closed when the publisher cannot determine the deployment context. A fail-mode trigger MUST be emitted as an AgentHook event, normally `ErrorOccurred` with `metadata.error_type: "admission_fail_mode"`, `metadata.fail_mode_triggered: true`, and `metadata.outcome: "allow"` or `"deny"`.
+- **Observational Pre\* telemetry**: a publisher MAY emit a `Pre*` event for visibility without blocking. Such events MUST set `evidence_phase` to `observational` or omit `evidence_phase`, and MUST NOT be represented as runtime authorisation evidence.
+- **Admission-bound Pre\* evidence**: a publisher that claims an action was authorised, denied, or escalated by runtime controls MUST emit the relevant `Pre*` event before the action commits, set `evidence_phase` to `pre_commit`, block until a subscriber verdict or documented fail-mode is reached, and record the consolidated result in `metadata.admission_verdict`. If the action has already committed and the event is emitted afterwards, the event is `post_hoc` or `observational` telemetry and MUST NOT be represented as equivalent to pre-commit authorisation evidence.
+- **Tool-call pairing**: admission-bound `PreToolUse` events SHOULD carry `metadata.tool_call_id`. The corresponding `PostToolUse`, denial, or fail-mode `ErrorOccurred` event SHOULD carry the same `tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD record the input actually executed so subscribers can detect time-of-check/time-of-use drift.
 - **Post\* events MUST NOT block** the publisher beyond enqueueing for delivery. Any subscriber processing time happens out of the publisher's hot path.
 - **Observer events** (`ModelResponse`, `SessionEnd`, `ErrorOccurred`) follow the same MUST NOT-block rule as Post\*.
 - **Idempotency**: re-delivery of the same `event_id` MUST be safe. Subscribers MUST handle duplicates by no-op or merge, never by double-counting.
@@ -291,11 +307,25 @@ The 80% pass threshold permits implementations to legitimately not emit certain 
 
 A formal conformance score is awarded by the test rig with the per-test pass/fail enumerated in a signed report.
 
+### Admission-bound profile
+
+The Bronze, Silver, and Gold tiers describe event coverage and transcript quality. They do not by themselves prove that a publisher's gates are in the action admission path. A publisher MAY additionally claim the `admission-bound` profile when:
+
+- enforcement-capable `Pre*` events use `evidence_phase: "pre_commit"`
+- the publisher blocks until a subscriber verdict or documented fail-mode before the action commits
+- `metadata.admission_verdict` records the consolidated decision
+- fail-mode allows or denies are emitted as AgentHook events
+- tool calls use stable `metadata.tool_call_id` pairing between pre, post, denial, and fail-mode events where the host runtime exposes a tool-call boundary
+
+The conformance rig SHOULD test the `admission-bound` profile separately from Bronze, Silver, and Gold so a publisher cannot satisfy an authorisation claim with post-hoc logging alone.
+
 ## 6. Runtime attestation
 
 Runtime attestation lets an agent, operator, or auditor distinguish verified runtime facts from user-authored prompt text. It is a publisher-supplied declaration of which hooks, gates, subscribers, consolidation rules, and fail modes are active for the current session.
 
 Runtime attestation is a non-breaking metadata extension. It does not add a new canonical event type and does not change `schema_version`.
+
+Attestation is only as strong as the runtime path that produced it. For enforcement-capable controls, attestation SHOULD describe controls that participate in the pre-commit admission path for the relevant action. A receipt produced after an action commits can be useful for observability, incident review, or audit chronology, but it is not equivalent to evidence that the action was admitted by a runtime gate before execution.
 
 Publishers SHOULD attach runtime attestation at the earliest available point in a session:
 
@@ -305,7 +335,9 @@ Publishers SHOULD attach runtime attestation at the earliest available point in 
 
 Publishers MAY also expose the same document through an implementation-specific local endpoint or tool. A bus MAY expose an aggregate attestation endpoint, but the AgentHook envelope does not require any particular bus or transport.
 
-The attestation document MUST NOT be authored by the user and MUST NOT be inferred from user-provided policy text. It MAY be signed or MACed by the publisher/runtime. Where signatures are used, the signature covers the canonical JSON representation of the attestation excluding the `signature` field.
+The attestation document MUST NOT be authored by the user and MUST NOT be inferred from user-provided policy text. It MAY be signed or MACed by the publisher/runtime. Where signatures are used, the signature covers the canonical JSON representation of the attestation excluding the `signature` field. Publishers SHOULD set `authenticity` to `unsigned`, `signed`, or `bus_attested`.
+
+If `claims.tool_calls_are_runtime_gated` is `true`, the publisher MUST implement admission-bound `PreToolUse` semantics from section 4 for tool execution. If the publisher cannot block before tool execution, the claim MUST be `false` or omitted. If `claims.do_not_bypass_gate` is `true`, the runtime MUST NOT provide an alternate tool execution path that skips an active admission-bound gate. These claims are testable runtime claims, not model instructions.
 
 Minimum shape:
 
@@ -341,6 +373,7 @@ Minimum shape:
     "final_verdict_source": "runtime"
   },
   "fail_mode": "fail_closed",
+  "authenticity": "unsigned",
   "claims": {
     "tool_calls_are_runtime_gated": true,
     "gate_denials_should_be_reported": true,
@@ -354,7 +387,7 @@ Minimum shape:
 
 Model-facing summaries derived from attestation MUST be factual and limited. They MUST NOT instruct the model to ignore system, platform, or safety policies. Recommended wording:
 
-> Verified AgentHook runtime attestation: tool calls in this session are routed through the listed runtime gates before execution. If a gate denies or asks for approval, report the gate response. Do not substitute, obscure, or route around a gate. This attestation does not replace model, platform, or system safety policy.
+> AgentHook runtime attestation (`authenticity`: signed|unsigned|bus_attested): tool calls in this session are routed through the listed runtime gates before execution when `tool_calls_are_runtime_gated` is true. If a gate denies or asks for approval, report the gate response. Do not substitute, obscure, or route around a gate. This attestation does not replace model, platform, or system safety policy.
 
 When an agent decides a tool call is appropriate under its normal instructions, it SHOULD submit the intended tool call through the runtime gate. It MUST NOT substitute a different command, hide an action, encode an action, or use an alternate route to avoid review by an active gate.
 
