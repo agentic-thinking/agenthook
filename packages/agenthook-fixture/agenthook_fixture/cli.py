@@ -1,4 +1,4 @@
-"""CLI for the Lily AgentHook flight test."""
+"""CLI for the AgentHook Conformance Fixture."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
             _print_result(run_preflight())
             return 0
 
-        prompt = " ".join(args.prompt).strip() or "Reply exactly: TASK COMPLETE lily flight reasoning smoke"
+        prompt = " ".join(args.prompt).strip() or "Reply exactly: TASK COMPLETE agenthook fixture reasoning smoke"
         _print_result(run_reasoning_smoke(prompt))
         return 0
     except RuntimeError as exc:

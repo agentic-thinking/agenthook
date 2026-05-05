@@ -1,20 +1,20 @@
 {
   "schema": "https://agenthook.org/schemas/publisher-manifest.v1.json",
   "schema_version": "1.0",
-  "publisher_id": "org.agenthook.publisher.lily-flight-test",
-  "display_name": "Lily Flight Test",
+  "publisher_id": "org.agenthook.publisher.agenthook-fixture",
+  "display_name": "AgentHook Conformance Fixture",
   "maintainer": {
     "name": "Agentic Thinking Limited",
     "url": "https://agenticthinking.uk"
   },
   "runtime": {
     "vendor": "AgentHook",
-    "name": "Lily Flight Test",
+    "name": "AgentHook Conformance Fixture",
     "versions_tested": ["0.1.0"]
   },
   "agenthook": {
     "version": "0.1",
-    "source": "lily-flight",
+    "source": "agenthook-fixture",
     "events": {
       "SessionStart": "supported",
       "UserPromptSubmit": "supported",
@@ -29,8 +29,8 @@
     }
   },
   "entrypoints": {
-    "command": "lily-flight --preflight",
-    "installer": "pip install -e packages/lily-flight-test"
+    "command": "agenthook-fixture --preflight",
+    "installer": "pip install -e packages/agenthook-fixture"
   },
   "config": {
     "files": ["AGENTHOOK_COLLECTOR_URL", "AGENTHOOK_COLLECTOR_TOKEN", "AGENTHOOK_SOURCE"]
@@ -45,8 +45,8 @@
     "conformance": "gold",
     "last_tested": "2026-04-30",
     "commands": [
-      "python3 -m pytest -q packages/lily-flight-test",
-      "lily-flight --preflight"
+      "python3 -m pytest -q packages/agenthook-fixture",
+      "agenthook-fixture --preflight"
     ]
   }
 }

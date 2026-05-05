@@ -25,7 +25,7 @@ AGENTHOOK_HOOKS = [
 
 def run_preflight(client: CollectorClient | None = None, session_id: str | None = None) -> dict[str, Any]:
     collector = client or CollectorClient()
-    sid = session_id or f"lily-flight-{uuid.uuid4()}"
+    sid = session_id or f"agenthook-fixture-{uuid.uuid4()}"
     llm_corr = str(uuid.uuid4())
     tool_corr = str(uuid.uuid4())
     handoff_corr = str(uuid.uuid4())
@@ -35,7 +35,7 @@ def run_preflight(client: CollectorClient | None = None, session_id: str | None 
         collector.emit(event_type, sid, **kwargs)
         emitted.append(event_type)
 
-    emit("SessionStart", metadata={"runtime": "lily-flight", "preflight": True})
+    emit("SessionStart", metadata={"runtime": "agenthook-fixture", "preflight": True})
     emit(
         "UserPromptSubmit",
         tool_input={"prompt": "AgentHook flight test: exercise all standard hooks"},
@@ -91,7 +91,7 @@ def run_preflight(client: CollectorClient | None = None, session_id: str | None 
         tool_input={"command": "pwd"},
         metadata={
             "duration_ms": int((time.time() - start) * 1000),
-            "result_preview": "<lily-flight-working-directory>",
+            "result_preview": "<agenthook-fixture-working-directory>",
             "preflight": True,
         },
         correlation_id=tool_corr,
@@ -99,9 +99,9 @@ def run_preflight(client: CollectorClient | None = None, session_id: str | None 
     emit(
         "AgentHandoff",
         tool_name="agent.handoff",
-        tool_input={"from_agent": "lily-flight", "to_agent": "agenthook-preflight-reviewer"},
+        tool_input={"from_agent": "agenthook-fixture", "to_agent": "agenthook-preflight-reviewer"},
         metadata={
-            "from_agent": "lily-flight",
+            "from_agent": "agenthook-fixture",
             "to_agent": "agenthook-preflight-reviewer",
             "handoff_reason": "verify AgentHook handoff event availability",
             "preflight": True,

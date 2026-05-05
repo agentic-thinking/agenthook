@@ -59,7 +59,7 @@ Pre-v1.0 public draft. Working group composition in progress. Substantive change
 
 Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.
 
-While the draft matures into a standard, publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json), [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json), or [`examples/publisher-manifest.lily-flight-test.json`](./examples/publisher-manifest.lily-flight-test.json) for current public publisher examples.
+While the draft matures into a standard, publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json), [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json), or [`examples/publisher-manifest.agenthook-fixture.json`](./examples/publisher-manifest.agenthook-fixture.json) for current public publisher examples.
 
 ### Implementation kit
 
@@ -77,24 +77,24 @@ python -m agenthook.cli test collector --target http://localhost:18800/event --t
 The kit is deliberately small: envelope builders, validation, `emit`,
 `doctor`, basic conformance checks, and runtime adapter scaffolding.
 
-### Lily Flight Test
+### AgentHook Conformance Fixture
 
 The minimal conformance flight-test fixture lives in
-[`packages/lily-flight-test`](./packages/lily-flight-test). It is not a
+[`packages/agenthook-fixture`](./packages/agenthook-fixture). It is not a
 production SDK or autonomous agent. It exists to prove that a publisher can emit
 the complete AgentHook surface through a collector or bus.
 
 ```bash
-cd packages/lily-flight-test
+cd packages/agenthook-fixture
 python3 -m pip install -e .
 python3 -m pytest -q
-AGENTHOOK_COLLECTOR_URL=http://127.0.0.1:18800/event AGENTHOOK_COLLECTOR_TOKEN="$TOKEN" lily-flight --preflight
+AGENTHOOK_COLLECTOR_URL=http://127.0.0.1:18800/event AGENTHOOK_COLLECTOR_TOKEN="$TOKEN" agenthook-fixture --preflight
 ```
 
-`lily-flight --preflight` emits all ten canonical event types:
+`agenthook-fixture --preflight` emits all ten canonical event types:
 `SessionStart`, `UserPromptSubmit`, `PreLLMCall`, `PostLLMCall`,
 `ModelResponse`, `PreToolUse`, `PostToolUse`, `AgentHandoff`,
 `ErrorOccurred`, and `SessionEnd`.
 
-See [`CONFORMANCE/lily-flight-test.md`](./CONFORMANCE/lily-flight-test.md) for
+See [`CONFORMANCE/agenthook-fixture.md`](./CONFORMANCE/agenthook-fixture.md) for
 the fixture scope and its current self-attested Gold status.

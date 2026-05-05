@@ -1,9 +1,9 @@
 import json
 import pytest
 
-from lily_flight.cli import main
-from lily_flight.collector import CollectorClient, CollectorConfig
-from lily_flight.preflight import AGENTHOOK_HOOKS, run_preflight
+from agenthook_fixture.cli import main
+from agenthook_fixture.collector import CollectorClient, CollectorConfig
+from agenthook_fixture.preflight import AGENTHOOK_HOOKS, run_preflight
 
 
 class CaptureTransport:
@@ -38,7 +38,7 @@ def test_envelopes_carry_agenthook_metadata_and_reasoning():
         event["body"] for event in capture.events
         if event["body"]["event_type"] == "ModelResponse"
     )
-    assert model_response["metadata"]["publisher"] == "lily-flight"
+    assert model_response["metadata"]["publisher"] == "agenthook-fixture"
     assert model_response["metadata"]["agenthook_standard"] == "https://agenthook.org"
     assert model_response["metadata"]["reasoning_available"] is True
     assert model_response["metadata"]["reasoning_content"]
@@ -61,7 +61,7 @@ def test_transport_failure_is_reported_without_traceback(monkeypatch, capsys):
     def fail():
         raise RuntimeError("Collector request failed: refused")
 
-    monkeypatch.setattr("lily_flight.cli.run_preflight", fail)
+    monkeypatch.setattr("agenthook_fixture.cli.run_preflight", fail)
     assert main(["preflight"]) == 1
     captured = capsys.readouterr()
     assert "error: Collector request failed: refused" in captured.err

@@ -1,4 +1,4 @@
-# Lily Flight Test
+# AgentHook Conformance Fixture
 
 Minimal AgentHook conformance fixture for any AgentHook-compatible HTTP
 collector or bus.
@@ -10,9 +10,9 @@ default local example collector, not a requirement of the standard.
 ## Commands
 
 ```bash
-lily-flight preflight
-lily-flight --preflight
-lily-flight reasoning-smoke "Reply exactly: TASK COMPLETE"
+agenthook-fixture preflight
+agenthook-fixture --preflight
+agenthook-fixture reasoning-smoke "Reply exactly: TASK COMPLETE"
 ```
 
 `preflight` emits all 10 AgentHook hooks:

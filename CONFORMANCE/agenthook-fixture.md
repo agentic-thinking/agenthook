@@ -1,16 +1,16 @@
-# Lily Flight Test
+# AgentHook Conformance Fixture
 
-Lily Flight Test is a minimal AgentHook conformance fixture. It exists to
+AgentHook Conformance Fixture is a minimal AgentHook conformance fixture. It exists to
 exercise the complete AgentHook lifecycle surface through a collector or bus.
 It is not a production SDK and not an autonomous agent runtime.
 HookBus is one reference collector that can receive these events; it is not
 required by AgentHook or by this fixture.
 
-The fixture lives in [`packages/lily-flight-test`](../packages/lily-flight-test).
+The fixture lives in [`packages/agenthook-fixture`](../packages/agenthook-fixture).
 
 ## What it emits
 
-`lily-flight --preflight` emits one deterministic session containing all ten
+`agenthook-fixture --preflight` emits one deterministic session containing all ten
 canonical AgentHook event types, in order:
 
 1. `SessionStart`
@@ -31,20 +31,20 @@ without making an external model call.
 ## Commands
 
 ```bash
-cd packages/lily-flight-test
+cd packages/agenthook-fixture
 python3 -m pip install -e .
 python3 -m pytest -q
 
 export AGENTHOOK_COLLECTOR_URL=http://127.0.0.1:18800/event
 export AGENTHOOK_COLLECTOR_TOKEN=...
-lily-flight --preflight
+agenthook-fixture --preflight
 ```
 
 For a real provider reasoning smoke test, set `LLM_API_KEY`, `LLM_BASE_URL`,
 and `LLM_MODEL` outside the repository and run:
 
 ```bash
-lily-flight reasoning-smoke "Reply exactly: TASK COMPLETE"
+agenthook-fixture reasoning-smoke "Reply exactly: TASK COMPLETE"
 ```
 
 ## Conformance status

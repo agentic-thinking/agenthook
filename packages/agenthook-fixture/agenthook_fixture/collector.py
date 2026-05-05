@@ -1,4 +1,4 @@
-"""Tiny AgentHook collector publisher used by the Lily flight test."""
+"""Tiny AgentHook collector publisher used by the conformance fixture."""
 
 from __future__ import annotations
 
@@ -29,8 +29,8 @@ class CollectorDecision:
 class CollectorConfig:
     url: str = os.getenv("AGENTHOOK_COLLECTOR_URL") or os.getenv("HOOKBUS_URL", "http://127.0.0.1:18800/event")
     token: str = os.getenv("AGENTHOOK_COLLECTOR_TOKEN") or os.getenv("HOOKBUS_TOKEN", "")
-    source: str = os.getenv("AGENTHOOK_SOURCE") or os.getenv("HOOKBUS_SOURCE", "lily-flight")
-    agent_id: str = os.getenv("AGENTHOOK_AGENT_ID", "lily-flight")
+    source: str = os.getenv("AGENTHOOK_SOURCE") or os.getenv("HOOKBUS_SOURCE", "agenthook-fixture")
+    agent_id: str = os.getenv("AGENTHOOK_AGENT_ID", "agenthook-fixture")
 
 
 class CollectorClient:
@@ -60,7 +60,7 @@ class CollectorClient:
             "tool_name": tool_name,
             "tool_input": tool_input or {},
             "metadata": {
-                "publisher": "lily-flight",
+                "publisher": "agenthook-fixture",
                 "agenthook_standard": "https://agenthook.org",
                 **(metadata or {}),
             },
