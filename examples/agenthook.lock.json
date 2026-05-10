@@ -1,0 +1,33 @@
+{
+  "schema": "agenthook.contract.v1",
+  "contract_id": "agenthook-fixture-preflight",
+  "version": "0.1",
+  "issued_by": "AgentHook",
+  "hashes": {
+    "AGENTHOOK.md": "sha256:example-human-readable-contract",
+    "agenthook.lock.json": "sha256:example-lock-contract"
+  },
+  "required_hooks": [
+    "SessionStart",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "ToolActivity",
+    "PostToolUse",
+    "HumanDecision",
+    "EvidenceSeal"
+  ],
+  "policy_refs": [
+    "agenthook-policy://preflight"
+  ],
+  "transport": {
+    "mode": "http",
+    "endpoint_env": "AGENTHOOK_COLLECTOR_URL",
+    "fail_mode": "fail_closed"
+  },
+  "conformance_mode": "gold",
+  "signature": {
+    "alg": "Ed25519",
+    "key_id": "agenthook-preflight-example",
+    "value": "example-signature"
+  }
+}

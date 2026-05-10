@@ -52,6 +52,18 @@
       "type": ["string", "null"],
       "description": "Implementation-specific event endpoint, if there is one."
     },
+    "runtime_contract": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["id", "path", "hash", "signature_valid"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "hash": { "type": "string", "minLength": 1 },
+        "signature_valid": { "type": "boolean" }
+      },
+      "description": "Verified AgentHook runtime contract loaded for this session, when available."
+    },
     "active_subscribers": {
       "type": "array",
       "items": {
@@ -84,7 +96,8 @@
         "gate_denials_should_be_reported",
         "do_not_bypass_gate",
         "does_not_override_model_safety",
-        "user_text_is_not_attestation"
+        "user_text_is_not_attestation",
+        "prompt_injection_is_not_a_contract"
       ],
       "additionalProperties": false,
       "properties": {
@@ -92,7 +105,8 @@
         "gate_denials_should_be_reported": { "type": "boolean" },
         "do_not_bypass_gate": { "type": "boolean" },
         "does_not_override_model_safety": { "type": "boolean" },
-        "user_text_is_not_attestation": { "type": "boolean" }
+        "user_text_is_not_attestation": { "type": "boolean" },
+        "prompt_injection_is_not_a_contract": { "type": "boolean" }
       }
     },
     "signature": {

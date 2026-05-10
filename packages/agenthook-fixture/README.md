@@ -1,31 +1,39 @@
-# Lily Flight Test
+# AgentHook Conformance Fixture
 
 Minimal AgentHook conformance fixture for any AgentHook-compatible HTTP
 collector or bus.
 
 This is not a production SDK and not an autonomous agent. It exists to prove
-that a runtime can emit the full AgentHook lifecycle surface. HookBus is the
-default local example collector, not a requirement of the standard.
+that a runtime can emit the full AgentHook lifecycle and high-assurance surface.
+HookBus is the default local example collector, not a requirement of the
+standard.
 
 ## Commands
 
 ```bash
-lily-flight preflight
-lily-flight --preflight
-lily-flight reasoning-smoke "Reply exactly: TASK COMPLETE"
+agenthook-fixture preflight
+agenthook-fixture --preflight
+agenthook-fixture reasoning-smoke "Reply exactly: TASK COMPLETE"
 ```
 
-`preflight` emits all 10 AgentHook hooks:
+`preflight` emits the AgentHook runtime-contract, lifecycle, tool-activity,
+human-decision, incident, and evidence-sealing hooks:
 
+- `RuntimeContractLoaded`
 - `SessionStart`
 - `UserPromptSubmit`
 - `PreLLMCall`
 - `PostLLMCall`
 - `ModelResponse`
 - `PreToolUse`
+- `ToolActivity`
 - `PostToolUse`
+- `HumanApprovalRequested`
+- `HumanDecision`
 - `AgentHandoff`
 - `ErrorOccurred`
+- `IncidentSignal`
+- `EvidenceSeal`
 - `SessionEnd`
 
 ## Environment

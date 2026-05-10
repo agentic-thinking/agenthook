@@ -3,16 +3,16 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agenthook-lily-flight-test"
+name = "agenthook-fixture"
 version = "0.1.0"
-description = "Minimal AgentHook conformance flight-test fixture for compatible collectors."
+description = "Minimal AgentHook conformance fixture for compatible collectors."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "Agentic Thinking"}]
 
 [project.scripts]
-lily-flight = "lily_flight.cli:main"
+agenthook-fixture = "agenthook_fixture.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["lily_flight*"]
+include = ["agenthook_fixture*"]

@@ -1,9 +1,9 @@
 import json
 import pytest
 
-from lily_flight.cli import main
-from lily_flight.collector import CollectorClient, CollectorConfig
-from lily_flight.preflight import AGENTHOOK_HOOKS, run_preflight
+from agenthook_fixture.cli import main
+from agenthook_fixture.collector import CollectorClient, CollectorConfig
+from agenthook_fixture.preflight import AGENTHOOK_HOOKS, run_preflight
 
 
 class CaptureTransport:
@@ -19,7 +19,7 @@ class CaptureTransport:
         return {"decision": "allow"}
 
 
-def test_preflight_emits_all_10_hooks_in_order():
+def test_preflight_emits_standard_hooks_in_order():
     capture = CaptureTransport()
     client = CollectorClient(CollectorConfig(url="http://collector.test/event", token="", source="test"), capture)
     result = run_preflight(client, session_id="sess-test")
@@ -38,10 +38,23 @@ def test_envelopes_carry_agenthook_metadata_and_reasoning():
         event["body"] for event in capture.events
         if event["body"]["event_type"] == "ModelResponse"
     )
-    assert model_response["metadata"]["publisher"] == "lily-flight"
+    assert model_response["metadata"]["publisher"] == "agenthook-fixture"
     assert model_response["metadata"]["agenthook_standard"] == "https://agenthook.org"
     assert model_response["metadata"]["reasoning_available"] is True
     assert model_response["metadata"]["reasoning_content"]
+
+    runtime_contract = next(
+        event["body"] for event in capture.events
+        if event["body"]["event_type"] == "RuntimeContractLoaded"
+    )
+    assert runtime_contract["metadata"]["contract"]["path"] == "./agenthook.lock.json"
+    assert runtime_contract["metadata"]["contract"]["signature_valid"] is True
+
+    tool_activity = next(
+        event["body"] for event in capture.events
+        if event["body"]["event_type"] == "ToolActivity"
+    )
+    assert tool_activity["metadata"]["activity_type"] == "shell.process_spawn"
 
 
 def test_auth_header_is_added_when_token_present():
@@ -61,7 +74,7 @@ def test_transport_failure_is_reported_without_traceback(monkeypatch, capsys):
     def fail():
         raise RuntimeError("Collector request failed: refused")
 
-    monkeypatch.setattr("lily_flight.cli.run_preflight", fail)
+    monkeypatch.setattr("agenthook_fixture.cli.run_preflight", fail)
     assert main(["preflight"]) == 1
     captured = capsys.readouterr()
     assert "error: Collector request failed: refused" in captured.err

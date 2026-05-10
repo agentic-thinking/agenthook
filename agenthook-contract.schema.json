@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agenthook.org/schemas/agenthook-contract.v1.json",
+  "title": "AgentHook Runtime Contract",
+  "description": "Machine-readable AgentHook runtime contract, normally stored as agenthook.lock.json.",
+  "type": "object",
+  "required": [
+    "schema",
+    "contract_id",
+    "version",
+    "issued_by",
+    "hashes",
+    "required_hooks",
+    "conformance_mode"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "agenthook.contract.v1"
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "issued_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^sha256:.+"
+      }
+    },
+    "required_hooks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "policy_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "transport": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "conformance_mode": {
+      "type": "string",
+      "enum": ["bronze", "silver", "gold", "high_assurance"]
+    },
+    "signature": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["alg", "key_id", "value"],
+      "properties": {
+        "alg": { "type": "string", "minLength": 1 },
+        "key_id": { "type": "string", "minLength": 1 },
+        "value": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

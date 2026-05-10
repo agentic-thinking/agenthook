@@ -1,4 +1,4 @@
-"""Minimal Lily AgentHook flight-test fixture."""
+"""Minimal AgentHook conformance fixture."""
 
 __all__ = ["__version__"]
 

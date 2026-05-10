@@ -7,7 +7,14 @@ import shutil
 import sys
 from pathlib import Path
 
-from .envelope import build_event, evidence_defaults, model_response, pre_tool_use, user_prompt_submit
+from .envelope import (
+    build_event,
+    evidence_defaults,
+    model_response,
+    pre_tool_use,
+    runtime_contract_loaded,
+    user_prompt_submit,
+)
 from .transport import emit_http
 from .validate import validate_event
 
@@ -38,6 +45,8 @@ def cmd_validate(args) -> int:
 def cmd_emit(args) -> int:
     if args.event == "PreToolUse":
         event = pre_tool_use(args.source, args.session, args.tool or "", _load_json_arg(args.input))
+    elif args.event == "RuntimeContractLoaded":
+        event = runtime_contract_loaded(args.source, args.session)
     elif args.event == "UserPromptSubmit":
         event = user_prompt_submit(args.source, args.session, args.prompt or "")
     elif args.event == "ModelResponse":
@@ -199,10 +208,15 @@ def cmd_test_collector(args) -> int:
     source = args.source or "agenthook-conformance"
     session = "collector-conformance"
     cases = [
+        ("RuntimeContractLoaded", runtime_contract_loaded(source, session, signature_valid=True, conformance_mode="gold")),
         ("UserPromptSubmit", user_prompt_submit(source, session, "hello from AgentHook conformance")),
         ("PreToolUse", pre_tool_use(source, session, "Bash", {"command": "pwd"})),
+        ("ToolActivity", build_event("ToolActivity", source, session, tool_name="Bash", tool_input={"command": "pwd"}, metadata=evidence_defaults(activity_type="shell.process_spawn", target="pwd", decision="allow"))),
         ("PostToolUse", build_event("PostToolUse", source, session, tool_name="Bash", tool_input={"command": "pwd"}, metadata=evidence_defaults(control_point="post_action", exit_code=0, duration_ms=1))),
         ("ModelResponse", model_response(source, session, response_text="collector conformance response", provider="agenthook")),
+        ("HumanDecision", build_event("HumanDecision", source, session, metadata=evidence_defaults(approval_ref="approval-smoke", approver_ref="human-smoke", decision="allow"))),
+        ("IncidentSignal", build_event("IncidentSignal", source, session, metadata=evidence_defaults(incident_ref="incident-smoke", severity="informational"))),
+        ("EvidenceSeal", build_event("EvidenceSeal", source, session, metadata=evidence_defaults(evidence_ref="evidence-smoke", hash="sha256:smoke"))),
         ("SessionStart", build_event("SessionStart", source, session, metadata=evidence_defaults())),
         ("SessionEnd", build_event("SessionEnd", source, session, metadata=evidence_defaults())),
         ("ErrorOccurred", build_event("ErrorOccurred", source, session, metadata=evidence_defaults(error_type="ConformanceSmoke", error_message="synthetic"))),

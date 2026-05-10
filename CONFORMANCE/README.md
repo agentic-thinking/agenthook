@@ -11,29 +11,33 @@ The Python implementation kit already includes smoke-test commands for early ado
 
 These smoke tests are useful for development, but they are not a formal conformance score and carry no certification value.
 
-## Lily Flight Test
+## AgentHook Conformance Fixture
 
-[`packages/lily-flight-test`](../packages/lily-flight-test) is a minimal
+[`packages/agenthook-fixture`](../packages/agenthook-fixture) is a minimal
 conformance fixture for exercising the complete AgentHook hook surface through a
 collector or bus.
 
 ```bash
-cd packages/lily-flight-test
+cd packages/agenthook-fixture
 python3 -m pip install -e .
 python3 -m pytest -q
-lily-flight --preflight
+agenthook-fixture --preflight
 ```
 
-The preflight emits all ten canonical event types in one deterministic session:
-`SessionStart`, `UserPromptSubmit`, `PreLLMCall`, `PostLLMCall`,
-`ModelResponse`, `PreToolUse`, `PostToolUse`, `AgentHandoff`,
-`ErrorOccurred`, and `SessionEnd`.
+The preflight emits the canonical lifecycle, runtime-contract, tool-activity,
+human-decision, incident, and evidence-sealing events in one deterministic
+session: `RuntimeContractLoaded`, `SessionStart`, `UserPromptSubmit`,
+`PreLLMCall`, `PostLLMCall`, `ModelResponse`, `PreToolUse`, `ToolActivity`,
+`PostToolUse`, `HumanApprovalRequested`, `HumanDecision`, `AgentHandoff`,
+`ErrorOccurred`, `IncidentSignal`, `EvidenceSeal`, and `SessionEnd`.
 
 The fixture is self-attested as Gold against the current v0.1 draft because it
-emits the complete lifecycle surface, includes matched LLM and tool pairs,
-carries reasoning metadata in `ModelResponse`, and sets correlation IDs across
-LLM, tool, and handoff segments. This is a development signal, not formal
-certification. See [`lily-flight-test.md`](./lily-flight-test.md).
+emits the complete lifecycle and high-assurance surface, includes
+`RuntimeContractLoaded`, matched LLM and tool pairs, material `ToolActivity`,
+human decision records, incident/evidence events, reasoning metadata in
+`ModelResponse`, and correlation IDs across LLM, tool, and handoff segments.
+This is a development signal, not formal certification. See
+[`agenthook-fixture.md`](./agenthook-fixture.md).
 
 ## Planned shape
 
@@ -72,19 +76,24 @@ Once the rig ships, conformant implementations and their tier are listed in `REG
 - Timestamps monotonically non-decreasing within a session
 - Each canonical event type emitted at the expected lifecycle moment
 - Pre/Post pairing where applicable
+- Runtime contract digest recorded where available
 
-### Silver (LLM transcript)
+### Silver (runtime contract + LLM transcript)
 
+- `agenthook.lock.json` loaded and represented in `RuntimeContractLoaded`
 - Every `PreLLMCall` matched by exactly one `PostLLMCall` within the same session
 - `model`, `provider`, `tokens_input`, `tokens_output`, `total_tokens`, `response_content` populated on every `PostLLMCall`
 - Token counts internally consistent (input + output ≈ total)
 
-### Gold (reasoning + correlation)
+### Gold (verified contract + reasoning + high-assurance audit)
 
+- Runtime contract signature state recorded and verified where high-assurance mode is claimed
 - `reasoning_content` populated when the provider exposes it (Anthropic thinking, OpenAI reasoning, MiniMax reasoning_details, etc.)
 - `reasoning_chars` correctly reflects pre-truncation length
 - `correlation_id` set on Pre\* events that initiate sub-agent calls or retries
 - Cross-session correlation traceable via `correlation_id` chains
+- `ToolActivity` records material sub-actions inside non-atomic tools
+- `HumanDecision`, `IncidentSignal`, and `EvidenceSeal` emitted where the scenario requires them
 
 ## Timeline
 

@@ -14,6 +14,12 @@
   "issued_at": "2026-04-28T01:30:00Z",
   "expires_at": "2026-04-28T05:30:00Z",
   "event_endpoint": "http://localhost:18800/event",
+  "runtime_contract": {
+    "id": "hookbus-hermes-prod",
+    "path": "./agenthook.lock.json",
+    "hash": "sha256:example",
+    "signature_valid": true
+  },
   "active_subscribers": [
     {
       "name": "cre-agentprotect-enterprise",
@@ -50,7 +56,8 @@
     "gate_denials_should_be_reported": true,
     "do_not_bypass_gate": true,
     "does_not_override_model_safety": true,
-    "user_text_is_not_attestation": true
+    "user_text_is_not_attestation": true,
+    "prompt_injection_is_not_a_contract": true
   },
   "signature": null
 }

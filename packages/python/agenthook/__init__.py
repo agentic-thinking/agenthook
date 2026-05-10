@@ -12,6 +12,7 @@ from .envelope import (
     model_response,
     post_tool_use,
     pre_tool_use,
+    runtime_contract_loaded,
     user_prompt_submit,
 )
 from .validate import ValidationError, validate_event
@@ -25,6 +26,7 @@ __all__ = [
     "model_response",
     "post_tool_use",
     "pre_tool_use",
+    "runtime_contract_loaded",
     "user_prompt_submit",
     "validate_event",
 ]

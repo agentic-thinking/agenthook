@@ -1,4 +1,4 @@
-"""CLI for the Lily AgentHook flight test."""
+"""CLI for the AgentHook conformance fixture."""
 
 from __future__ import annotations
 
@@ -30,10 +30,10 @@ def _print_result(result: dict) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Minimal AgentHook flight-test fixture.")
+    parser = argparse.ArgumentParser(description="Minimal AgentHook conformance fixture.")
     parser.add_argument("command", nargs="?", default="preflight", choices=["preflight", "reasoning-smoke"])
     parser.add_argument("prompt", nargs="*", help="Prompt for reasoning-smoke")
-    parser.add_argument("--preflight", action="store_true", help="Emit all 10 AgentHook hooks")
+    parser.add_argument("--preflight", action="store_true", help="Emit AgentHook preflight hooks")
     args = parser.parse_args(argv)
 
     try:
@@ -49,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
             _print_result(run_preflight())
             return 0
 
-        prompt = " ".join(args.prompt).strip() or "Reply exactly: TASK COMPLETE lily flight reasoning smoke"
+        prompt = " ".join(args.prompt).strip() or "Reply exactly: TASK COMPLETE conformance fixture reasoning smoke"
         _print_result(run_reasoning_smoke(prompt))
         return 0
     except RuntimeError as exc:

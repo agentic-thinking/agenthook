@@ -7,15 +7,23 @@ from typing import Any
 SCHEMA_VERSION = 1
 
 CANONICAL_EVENT_TYPES = {
+    "RuntimeContractLoaded",
+    "CapabilityReport",
     "PreToolUse",
+    "ToolActivity",
     "PostToolUse",
     "UserPromptSubmit",
     "PreLLMCall",
     "PostLLMCall",
     "ModelResponse",
+    "ContextInject",
+    "HumanApprovalRequested",
+    "HumanDecision",
     "SessionStart",
     "SessionEnd",
     "AgentHandoff",
+    "IncidentSignal",
+    "EvidenceSeal",
     "ErrorOccurred",
 }
 
@@ -78,6 +86,46 @@ def build_event(
         "metadata": metadata or {},
         "annotations": {},
     }
+
+
+def runtime_contract_loaded(
+    source: str,
+    session_id: str,
+    *,
+    contract_id: str = "example-contract",
+    contract_version: str = "0.1",
+    contract_path: str = "./agenthook.lock.json",
+    human_readable_path: str = "./AGENTHOOK.md",
+    contract_hash: str = "sha256:example",
+    signature_valid: bool = False,
+    conformance_mode: str = "bronze",
+) -> dict[str, Any]:
+    return build_event(
+        "RuntimeContractLoaded",
+        source,
+        session_id,
+        metadata=evidence_defaults(
+            contract={
+                "id": contract_id,
+                "version": contract_version,
+                "path": contract_path,
+                "human_readable_path": human_readable_path,
+                "hash": contract_hash,
+                "signature_valid": signature_valid,
+                "required_hooks": [
+                    "SessionStart",
+                    "UserPromptSubmit",
+                    "PreToolUse",
+                    "ToolActivity",
+                    "PostToolUse",
+                    "HumanDecision",
+                    "EvidenceSeal",
+                ],
+                "conformance_mode": conformance_mode,
+            },
+            control_point="pre_session",
+        ),
+    )
 
 
 def pre_tool_use(source: str, session_id: str, tool_name: str, tool_input: dict[str, Any]) -> dict[str, Any]:

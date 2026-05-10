@@ -16,15 +16,23 @@
     "version": "0.1",
     "source": "codex",
     "events": {
+      "RuntimeContractLoaded": "planned",
+      "CapabilityReport": "planned",
       "SessionStart": "supported",
       "UserPromptSubmit": "supported",
       "PreLLMCall": "not_exposed",
       "PostLLMCall": "not_exposed",
       "PreToolUse": "partial",
+      "ToolActivity": "planned",
       "PostToolUse": "partial",
       "ModelResponse": "partial",
+      "ContextInject": "planned",
+      "HumanApprovalRequested": "planned",
+      "HumanDecision": "planned",
       "SessionEnd": "not_exposed",
       "AgentHandoff": "not_exposed",
+      "IncidentSignal": "planned",
+      "EvidenceSeal": "planned",
       "ErrorOccurred": "not_exposed"
     }
   },

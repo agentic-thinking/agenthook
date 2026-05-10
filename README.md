@@ -2,7 +2,7 @@
 
 > **DRAFT — pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
 
-An open technical specification for AI-agent runtime evidence: structured, subscriber-addressable envelopes for lifecycle events, tool calls, human approvals, policy denials, model interactions, and runtime control attestations.
+An open technical specification for AI-agent runtime evidence: structured, subscriber-addressable envelopes for verified runtime contracts, lifecycle events, material tool activity, human approvals, policy denials, model interactions, publisher manifests, and runtime control attestations.
 
 The specification is **Apache-2.0**. Stewardship sits with **Agentic Thinking Limited (UK)** under the commitments set out in [`GOVERNANCE.md`](./GOVERNANCE.md). Adopters benefit from a perpetual no-relicence pledge and a working-group governance model.
 
@@ -44,22 +44,23 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 - [`SPEC.md`](./SPEC.md): the wire-format specification (envelope, event types, metadata keys)
 - [`STANDARDS.md`](./STANDARDS.md): how AgentHook relates to governance, observability, attestation, provenance, and policy-engine standards
 - [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
+- [`agenthook-contract.schema.json`](./agenthook-contract.schema.json): draft schema for `agenthook.lock.json`, the machine-readable runtime contract
 - [`publisher-manifest.schema.json`](./publisher-manifest.schema.json): draft schema for publisher identity, hook coverage, limitations, and verification status
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
 - [`MEMBERS.md`](./MEMBERS.md): founding members and invitee status
-- [`CONFORMANCE/`](./CONFORMANCE/): conformance notes and flight-test fixtures
+- [`CONFORMANCE/`](./CONFORMANCE/): conformance notes and conformance fixtures
 - [`PROPOSALS/`](./PROPOSALS/): change process (AHP, "AgentHook Proposal")
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Contract Discovery is now the preferred mechanism for runtime-level governance: conforming runtimes should load `AGENTHOOK.md` and `agenthook.lock.json` before execution and emit `RuntimeContractLoaded`. `ContextInject` is compatibility/awareness only, not authority. Runtime Attestation is a draft extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
 
 ## Quick start
 
 Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.
 
-While the draft matures into a standard, publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json), [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json), or [`examples/publisher-manifest.lily-flight-test.json`](./examples/publisher-manifest.lily-flight-test.json) for current public publisher examples.
+While the draft matures into a standard, publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json), [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json), or [`examples/publisher-manifest.agenthook-fixture.json`](./examples/publisher-manifest.agenthook-fixture.json) for current public publisher examples.
 
 ### Implementation kit
 
@@ -77,24 +78,26 @@ python -m agenthook.cli test collector --target http://localhost:18800/event --t
 The kit is deliberately small: envelope builders, validation, `emit`,
 `doctor`, basic conformance checks, and runtime adapter scaffolding.
 
-### Lily Flight Test
+### AgentHook Conformance Fixture
 
-The minimal conformance flight-test fixture lives in
-[`packages/lily-flight-test`](./packages/lily-flight-test). It is not a
+The minimal conformance fixture lives in
+[`packages/agenthook-fixture`](./packages/agenthook-fixture). It is not a
 production SDK or autonomous agent. It exists to prove that a publisher can emit
 the complete AgentHook surface through a collector or bus.
 
 ```bash
-cd packages/lily-flight-test
+cd packages/agenthook-fixture
 python3 -m pip install -e .
 python3 -m pytest -q
-AGENTHOOK_COLLECTOR_URL=http://127.0.0.1:18800/event AGENTHOOK_COLLECTOR_TOKEN="$TOKEN" lily-flight --preflight
+AGENTHOOK_COLLECTOR_URL=http://127.0.0.1:18800/event AGENTHOOK_COLLECTOR_TOKEN="$TOKEN" agenthook-fixture --preflight
 ```
 
-`lily-flight --preflight` emits all ten canonical event types:
-`SessionStart`, `UserPromptSubmit`, `PreLLMCall`, `PostLLMCall`,
-`ModelResponse`, `PreToolUse`, `PostToolUse`, `AgentHandoff`,
-`ErrorOccurred`, and `SessionEnd`.
+`agenthook-fixture --preflight` emits the canonical lifecycle, runtime-contract,
+tool-activity, human-decision, incident, and evidence-sealing events:
+`RuntimeContractLoaded`, `SessionStart`, `UserPromptSubmit`, `PreLLMCall`,
+`PostLLMCall`, `ModelResponse`, `PreToolUse`, `ToolActivity`,
+`PostToolUse`, `HumanApprovalRequested`, `HumanDecision`, `AgentHandoff`,
+`ErrorOccurred`, `IncidentSignal`, `EvidenceSeal`, and `SessionEnd`.
 
-See [`CONFORMANCE/lily-flight-test.md`](./CONFORMANCE/lily-flight-test.md) for
+See [`CONFORMANCE/agenthook-fixture.md`](./CONFORMANCE/agenthook-fixture.md) for
 the fixture scope and its current self-attested Gold status.

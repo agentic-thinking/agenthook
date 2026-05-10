@@ -71,15 +71,23 @@
             "enum": ["supported", "partial", "not_exposed", "planned"]
           },
           "required": [
+            "RuntimeContractLoaded",
+            "CapabilityReport",
             "SessionStart",
             "UserPromptSubmit",
             "PreLLMCall",
             "PostLLMCall",
             "PreToolUse",
+            "ToolActivity",
             "PostToolUse",
             "ModelResponse",
+            "ContextInject",
+            "HumanApprovalRequested",
+            "HumanDecision",
             "SessionEnd",
             "AgentHandoff",
+            "IncidentSignal",
+            "EvidenceSeal",
             "ErrorOccurred"
           ]
         }

@@ -27,6 +27,25 @@ def run_cli(*args: str, input_text: str | None = None) -> subprocess.CompletedPr
 
 
 class AgentHookCliTests(unittest.TestCase):
+    def test_validate_accepts_extension_event_type(self) -> None:
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(
+                {
+                    "event_id": "550e8400-e29b-41d4-a716-446655440000",
+                    "event_type": "CustomPublisherEvent",
+                    "timestamp": "2026-05-10T10:00:00Z",
+                    "source": "publisher-test",
+                },
+                fh,
+            )
+            path = fh.name
+        try:
+            proc = run_cli("validate", path)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertIn("valid", proc.stdout)
+        finally:
+            Path(path).unlink(missing_ok=True)
+
     def test_emit_pre_tool_use_is_valid_json(self) -> None:
         proc = run_cli(
             "emit",
@@ -54,7 +73,6 @@ class AgentHookCliTests(unittest.TestCase):
         try:
             proc = run_cli("validate", path)
             self.assertNotEqual(proc.returncode, 0)
-            self.assertIn("Bad", proc.stderr)
             self.assertIn("uuid", proc.stderr.lower())
         finally:
             Path(path).unlink(missing_ok=True)
@@ -160,8 +178,10 @@ class AgentHookCliTests(unittest.TestCase):
 
         server = HTTPServer(("127.0.0.1", 0), Handler)
 
+        expected_events = 12
+
         def serve():
-            for _ in range(7):
+            for _ in range(expected_events):
                 server.handle_request()
 
         thread = threading.Thread(target=serve, daemon=True)
@@ -173,7 +193,11 @@ class AgentHookCliTests(unittest.TestCase):
             server.server_close()
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn("Result: pass", proc.stdout)
-        self.assertEqual(len(seen), 7)
+        self.assertEqual(len(seen), expected_events)
+        self.assertIn("RuntimeContractLoaded", {event["event_type"] for event in seen})
+        self.assertIn("ToolActivity", {event["event_type"] for event in seen})
+        self.assertIn("HumanDecision", {event["event_type"] for event in seen})
+        self.assertIn("EvidenceSeal", {event["event_type"] for event in seen})
         self.assertIn("ModelResponse", {event["event_type"] for event in seen})
 
 

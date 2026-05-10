@@ -16,15 +16,23 @@
     "version": "0.1",
     "source": "claude-code",
     "events": {
+      "RuntimeContractLoaded": "planned",
+      "CapabilityReport": "planned",
       "SessionStart": "not_exposed",
       "UserPromptSubmit": "supported",
       "PreLLMCall": "not_exposed",
       "PostLLMCall": "not_exposed",
       "PreToolUse": "supported",
+      "ToolActivity": "planned",
       "PostToolUse": "supported",
       "ModelResponse": "partial",
+      "ContextInject": "planned",
+      "HumanApprovalRequested": "planned",
+      "HumanDecision": "planned",
       "SessionEnd": "not_exposed",
       "AgentHandoff": "not_exposed",
+      "IncidentSignal": "planned",
+      "EvidenceSeal": "planned",
       "ErrorOccurred": "not_exposed"
     }
   },

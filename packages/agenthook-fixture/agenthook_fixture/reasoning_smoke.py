@@ -40,14 +40,14 @@ def run_reasoning_smoke(prompt: str, client: CollectorClient | None = None) -> d
         raise SystemExit("LLM_API_KEY is required")
 
     collector = client or CollectorClient()
-    sid = f"lily-flight-reasoning-{uuid.uuid4()}"
+    sid = f"agenthook-fixture-reasoning-{uuid.uuid4()}"
     corr = str(uuid.uuid4())
     provider = os.getenv("LLM_PROVIDER", "openai-compatible")
     model = os.getenv("LLM_MODEL", "reasoning-model")
     base_url = os.getenv("LLM_BASE_URL", "http://127.0.0.1:8000/v1").rstrip("/")
     thinking = os.getenv("LLM_REASONING_MODE", "enabled").strip().lower()
 
-    collector.emit("SessionStart", sid, metadata={"runtime": "lily-flight", "reasoning_smoke": True})
+    collector.emit("SessionStart", sid, metadata={"runtime": "agenthook-fixture", "reasoning_smoke": True})
     collector.emit(
         "UserPromptSubmit",
         sid,
@@ -77,7 +77,7 @@ def run_reasoning_smoke(prompt: str, client: CollectorClient | None = None) -> d
         payload,
         {
             "Authorization": f"Bearer {api_key}",
-            "User-Agent": os.getenv("LLM_USER_AGENT", "agenthook-lily-flight/0.1"),
+            "User-Agent": os.getenv("LLM_USER_AGENT", "agenthook-fixture/0.1"),
         },
     )
     duration_ms = int((time.time() - start) * 1000)

@@ -10,13 +10,14 @@ This specification defines the lifecycle events that an AI agent runtime ("publi
 The specification covers:
 
 1. The envelope format that every event must carry
-2. The canonical set of event types
+2. The canonical set of lifecycle, contract, and high-assurance event types
 3. The standard metadata keys per event type
 4. Hook delivery semantics (sync vs async, fail-mode behaviour)
 5. Conformance levels (Bronze, Silver, Gold)
-6. Runtime attestation as a non-breaking metadata extension
-7. Publisher manifests as an interim local-first identity, coverage, and verification layer
-8. Managed runtime identity and approval metadata for enterprise deployments
+6. Runtime contract discovery and verification
+7. Runtime attestation
+8. Publisher manifests as an interim local-first identity, coverage, and verification layer
+9. Managed runtime identity and approval metadata for enterprise deployments
 
 It does not cover:
 
@@ -163,19 +164,27 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
 
 ## 2. Canonical event types
 
-The specification defines ten canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`.
+The specification defines canonical lifecycle, contract, and high-assurance event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`.
 
 | Event type | Phase | Description |
 |---|---|---|
+| `RuntimeContractLoaded` | before | The runtime discovered, loaded, and verified the active AgentHook runtime contract before execution |
+| `CapabilityReport` | state | The publisher reports supported hooks, field coverage, capture methods, and conformance metadata |
 | `PreToolUse` | before | The agent is about to execute a tool call |
+| `ToolActivity` | during | Material activity happened inside a non-atomic tool call, linked to the parent tool event |
 | `PostToolUse` | after | The tool call returned (or threw) |
 | `UserPromptSubmit` | before | The user submitted a prompt to the agent |
 | `PreLLMCall` | before | The agent is about to call its LLM |
 | `PostLLMCall` | after | The LLM call returned |
 | `ModelResponse` | after | The model has finished generating its response (transcript-grade record) |
+| `ContextInject` | before | A short pointer to the verified runtime contract was surfaced to the agent. Compatibility/awareness only; not authority |
+| `HumanApprovalRequested` | before | A subscriber, policy, or runtime asked a human to approve, reject, override, or amend an action |
+| `HumanDecision` | after | A named human decision was recorded with scope, rationale, authority, and timestamp |
 | `SessionStart` | state | A new agent session began |
 | `SessionEnd` | state | An agent session ended |
 | `AgentHandoff` | during | The agent is delegating to another agent |
+| `IncidentSignal` | after | A runtime, subscriber, or monitor recorded a potential safety, policy, security, or operational incident |
+| `EvidenceSeal` | after | A collector sealed an evidence bundle, export, or replay segment with retention and integrity metadata |
 | `ErrorOccurred` | after | An error was raised that did not terminate the session |
 
 Naming rules:
@@ -213,11 +222,50 @@ Naming rules:
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
 
+### `RuntimeContractLoaded`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `contract` | object | Active runtime contract: id, version, path, digest, signature status, required hooks, and conformance mode |
+
+`RuntimeContractLoaded` is the preferred mechanism for establishing runtime-level governance. Prompt injection is not a runtime contract. `ContextInject` MAY surface a short pointer to the verified contract, but it MUST NOT be treated as equivalent to loading and verifying `AGENTHOOK.md`, `agenthook.lock.json`, or `agenthook.signature`.
+
+### `ToolActivity`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `activity_type` | string | Namespaced activity such as `browser.click`, `browser.read`, `shell.process_spawn`, `database.query`, `email.send`, or `cloud.api_call` |
+| `parent_event_id` | string | The parent tool event this activity belongs to |
+| `target` | string or object | Target resource, URL, command, table, account, file path, or external system |
+| `decision` | string | Optional decision state such as `allow`, `deny`, `ask`, `observe`, or `not_applicable` |
+
+Publishers SHOULD emit `ToolActivity` records for material sub-actions inside non-atomic tools. In high-assurance mode, publishers MUST emit `ToolActivity` for sub-actions affecting regulated data, external systems, money, production infrastructure, user communications, permissions, or audit evidence.
+
+### `HumanApprovalRequested` and `HumanDecision`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `approval_ref` | string | Approval, workflow, ticket, or case reference |
+| `approver_ref` | string | Pseudonymous human approver reference |
+| `authority` | string | Authority or role under which the decision was made |
+| `scope` | object | Action, time, system, or session scope covered by the approval |
+| `rationale` | string | Human-readable decision rationale |
+
+### `IncidentSignal` and `EvidenceSeal`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `incident_ref` | string | Internal incident or review reference |
+| `severity` | string | Local severity classification |
+| `evidence_ref` | string | Evidence bundle, export, replay, or storage reference |
+| `hash` | string | Cryptographic digest of the sealed evidence bundle, for example `sha256:...` |
+| `retention` | object | Retention class, start, expiry, and controller metadata |
+
 ### `SessionStart`, first `PreLLMCall`, or first `UserPromptSubmit`
 
 | Key | Type | Purpose |
 |---|---|---|
-| `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 6. |
+| `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 7. |
 
 ## 4. Hook delivery semantics
 
@@ -241,19 +289,44 @@ Three tiers, defined for publishers. A publisher claims a tier; the conformance 
 
 | Tier | What is verified |
 |---|---|
-| **Bronze** | Publisher emits the lifecycle event types in section 2 with the envelope format in section 1 (required fields populated, valid JSON, valid event_id, valid timestamp). 80% pass on the Bronze test set. |
-| **Silver** | Bronze + LLM transcript capture: every `PreLLMCall` is matched by exactly one `PostLLMCall` carrying `model`, `provider`, `tokens_input`, `tokens_output`, `response_content`. 80% pass on the Silver test set. |
-| **Gold** | Silver + reasoning capture (`reasoning_content` + `reasoning_chars` populated when the provider exposes them; null/0 acceptable when not) + cross-session correlation (`correlation_id` set on Pre\* events that initiate a sub-agent or retry). 80% pass on the Gold test set. |
+| **Bronze** | Publisher emits the core lifecycle event types in section 2 with the envelope format in section 1 (required fields populated, valid JSON, valid event_id, valid timestamp). Runtime contract digest is recorded where available. 80% pass on the Bronze test set. |
+| **Silver** | Bronze + `agenthook.lock.json` loading + LLM transcript capture: every `PreLLMCall` is matched by exactly one `PostLLMCall` carrying `model`, `provider`, `tokens_input`, `tokens_output`, `response_content`. 80% pass on the Silver test set. |
+| **Gold** | Silver + contract signature verification + reasoning capture (`reasoning_content` + `reasoning_chars` populated when the provider exposes them; null/0 acceptable when not) + cross-session correlation (`correlation_id` set on Pre\* events that initiate a sub-agent or retry) + high-assurance audit events such as `ToolActivity`, `HumanDecision`, `IncidentSignal`, and `EvidenceSeal`. 80% pass on the Gold test set. |
 
 The 80% pass threshold permits implementations to legitimately not emit certain event types if their host runtime simply does not generate them (e.g. a CLI that has no notion of `AgentHandoff` cannot be penalised for not emitting it).
 
 A formal conformance score is awarded by the test rig with the per-test pass/fail enumerated in a signed report.
 
-## 6. Runtime attestation
+## 6. Runtime contract discovery
+
+AgentHook SHOULD be implemented as a runtime contract, not as prompt text. A runtime contract is a local or remote configuration artefact that the runtime discovers, verifies, and applies before the agent acts.
+
+The recommended local contract files are:
+
+| File | Purpose |
+|---|---|
+| `AGENTHOOK.md` | Human-readable contract for operators, developers, auditors, and agents |
+| `agenthook.lock.json` | Machine-readable canonical contract with hashes, required hooks, policy references, transport expectations, and conformance mode |
+| `agenthook.signature` | Optional detached signature over the human and machine-readable contract files |
+
+The runtime MAY also read local convention files such as `AGENTS.md`, `CLAUDE.md`, or other runtime-specific instruction files. Those files are useful project context, but they are not the AgentHook source of truth unless the runtime contract explicitly references and hashes them.
+
+`RuntimeContractLoaded` SHOULD be emitted before other session activity where the runtime can observe contract loading. It SHOULD include `metadata.contract` with the active contract id, version, path, human-readable path, digest, signature state, required hooks, and conformance mode.
+
+Conformance expectations:
+
+- Bronze publishers MAY rely on `AGENTHOOK.md` discovery and record its digest.
+- Silver publishers SHOULD load `agenthook.lock.json` and emit its digest in `RuntimeContractLoaded` and `SessionStart`.
+- Gold publishers SHOULD verify a signature before entering high-assurance mode.
+- High-assurance publishers MUST refuse high-assurance mode if the required runtime contract is missing, has the wrong digest, or fails signature verification.
+
+`ContextInject` is compatibility and awareness only. It MAY surface a short pointer to the verified runtime contract. It MUST NOT be treated as a substitute for loading a runtime contract. Publishers MUST NOT treat user-authored prompt text as equivalent to a verified runtime contract.
+
+## 7. Runtime attestation
 
 Runtime attestation lets an agent, operator, or auditor distinguish verified runtime facts from user-authored prompt text. It is a publisher-supplied declaration of which hooks, gates, subscribers, consolidation rules, and fail modes are active for the current session.
 
-Runtime attestation is a non-breaking metadata extension. It does not add a new canonical event type and does not change `schema_version`.
+Runtime attestation complements `RuntimeContractLoaded`. The contract records what should be active. Attestation records what the runtime says is active in this session.
 
 Publishers SHOULD attach runtime attestation at the earliest available point in a session:
 
@@ -284,6 +357,12 @@ Minimum shape:
   "issued_at": "2026-04-28T01:30:00Z",
   "expires_at": "2026-04-28T05:30:00Z",
   "event_endpoint": "http://localhost:18800/event",
+  "runtime_contract": {
+    "id": "example-prod",
+    "path": "./agenthook.lock.json",
+    "hash": "sha256:example",
+    "signature_valid": true
+  },
   "active_subscribers": [
     {
       "name": "policy-gate",
@@ -304,7 +383,8 @@ Minimum shape:
     "gate_denials_should_be_reported": true,
     "do_not_bypass_gate": true,
     "does_not_override_model_safety": true,
-    "user_text_is_not_attestation": true
+    "user_text_is_not_attestation": true,
+    "prompt_injection_is_not_a_contract": true
   },
   "signature": null
 }
@@ -316,7 +396,7 @@ Model-facing summaries derived from attestation MUST be factual and limited. The
 
 When an agent decides a tool call is appropriate under its normal instructions, it SHOULD submit the intended tool call through the runtime gate. It MUST NOT substitute a different command, hide an action, encode an action, or use an alternate route to avoid review by an active gate.
 
-## 7. Publisher manifests
+## 8. Publisher manifests
 
 Until agent runtimes emit AgentHook natively, an AgentHook publisher SHOULD ship a repository-root `agenthook.publisher.json` file conforming to [`publisher-manifest.schema.json`](./publisher-manifest.schema.json).
 
@@ -337,14 +417,14 @@ Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.p
 
 Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active. Native AgentHook runtimes may expose equivalent manifest metadata through their own standard implementation once the draft reaches stable standard status.
 
-## 8. Versioning and stability
+## 9. Versioning and stability
 
 - Pre-1.0 (current): the specification may change without notice. Implementations are encouraged to track the draft and provide feedback via Issues and Proposals.
 - 1.0 onwards: changes follow the Proposal process in [`GOVERNANCE.md`](./GOVERNANCE.md). Breaking changes require unanimous Working Group approval and a deprecation window of no less than nine months.
 
 The `schema_version` field allows implementations to negotiate envelope shape. Breaking changes increment `schema_version`. Subscribers MUST handle at least the version they were authored for; bus implementations MAY translate between versions.
 
-## 8. Examples
+## 10. Examples
 
 ### Minimal valid event
 
