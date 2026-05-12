@@ -18,19 +18,26 @@
     },
     "event_type": {
       "type": "string",
-      "enum": [
-        "PreToolUse",
-        "PostToolUse",
-        "UserPromptSubmit",
-        "PreLLMCall",
-        "PostLLMCall",
-        "ModelResponse",
-        "SessionStart",
-        "SessionEnd",
-        "AgentHandoff",
-        "ErrorOccurred"
+      "anyOf": [
+        {
+          "enum": [
+            "PreToolUse",
+            "PostToolUse",
+            "UserPromptSubmit",
+            "PreLLMCall",
+            "PostLLMCall",
+            "ModelResponse",
+            "SessionStart",
+            "SessionEnd",
+            "AgentHandoff",
+            "ErrorOccurred"
+          ]
+        },
+        {
+          "pattern": "^[A-Z][A-Za-z0-9]*$"
+        }
       ],
-      "description": "Canonical event type. PascalCase, no underscores or dots."
+      "description": "Canonical event type, or an additional PascalCase event type permitted by SPEC section 2."
     },
     "timestamp": {
       "type": "string",

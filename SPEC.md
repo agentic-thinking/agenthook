@@ -17,6 +17,7 @@ The specification covers:
 6. Runtime attestation as a non-breaking metadata extension
 7. Publisher manifests as an interim local-first identity, coverage, and verification layer
 8. Managed runtime identity and approval metadata for enterprise deployments
+9. Approval lifecycle metadata for autonomous-agent pause, approval, retry, and resume flows
 
 It does not cover:
 
@@ -178,6 +179,8 @@ The specification defines ten canonical event types. Implementations MAY emit ad
 | `AgentHandoff` | during | The agent is delegating to another agent |
 | `ErrorOccurred` | after | An error was raised that did not terminate the session |
 
+Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.1 canonical ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
+
 Naming rules:
 
 - PascalCase, no underscores or dots
@@ -210,6 +213,7 @@ Naming rules:
 | `estimated_usd` | number | Cost estimate (set by a budget subscriber, stamped onto the event) |
 | `duration_ms` | integer | Tool wall-clock duration (`PostToolUse` only) |
 | `exit_code` | integer | Tool exit code where applicable (`PostToolUse` only) |
+| `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 9. |
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
 
@@ -344,7 +348,78 @@ Collectors and buses MAY use publisher manifests to display onboarding state, su
 
 The `schema_version` field allows implementations to negotiate envelope shape. Breaking changes increment `schema_version`. Subscribers MUST handle at least the version they were authored for; bus implementations MAY translate between versions.
 
-## 8. Examples
+## 9. Approval lifecycle metadata
+
+Autonomous agents often need to pause a tool call until a human, workflow system, or policy owner approves or rejects the action. AgentHook models this without changing the envelope shape.
+
+When a synchronous subscriber returns `decision: "ask"` for a `PreToolUse` event, the response SHOULD include `metadata.approval`. Publishers and hook wrappers SHOULD treat that state as a pause instruction: do not execute the tool call until the referenced approval workflow is approved, denied, or timed out.
+
+Minimum response shape:
+
+```json
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "decision": "ask",
+  "reason": "Remote server access requires human approval",
+  "metadata": {
+    "approval": {
+      "required": true,
+      "status": "pending",
+      "workflow_id": "wf_123",
+      "action_id": "act_456",
+      "department": "management",
+      "reviewer_ref": "user_or_group_ref",
+      "requested_at": "2026-05-08T03:42:00Z",
+      "expires_at": "2026-05-08T03:57:00Z",
+      "resume_policy": "retry_same_event"
+    }
+  }
+}
+```
+
+| Field | Type | Purpose |
+|---|---|---|
+| `required` | boolean | Whether human or workflow approval is required before execution |
+| `status` | enum | `pending`, `approved`, `denied`, `expired`, or `cancelled` |
+| `workflow_id` | string | Stable workflow identifier owned by the approval system |
+| `action_id` | string | Stable action identifier within the workflow |
+| `department` | string | Optional routing department, role, or queue |
+| `reviewer_ref` | string | Optional pseudonymous reviewer, group, or queue reference. Avoid raw personal data where possible |
+| `requested_at` | string | ISO 8601 timestamp for the approval request |
+| `decided_at` | string | ISO 8601 timestamp for an approval or denial decision |
+| `expires_at` | string | ISO 8601 timeout for the pending request |
+| `resume_policy` | enum | `retry_same_event`, `retry_with_workflow_id`, `publisher_waits`, or `manual_retry` |
+| `decision_ref` | string | Optional reference to the approval decision record |
+| `approval_url` | string | Optional operator-facing approval link. Publishers MUST NOT expose this to the model unless explicitly configured to do so |
+
+Recommended status semantics:
+
+- `pending`: the tool call is paused and MUST NOT execute yet.
+- `approved`: the same tool call MAY execute if the publisher, bus, or policy subscriber verifies that the approved workflow/action matches the pending action.
+- `denied`, `expired`, or `cancelled`: the tool call MUST NOT execute.
+
+Recommended resume semantics:
+
+- `retry_same_event`: the publisher retries the same `event_id`; the approval system resolves the existing workflow by `event_id` and returns `allow` or `deny`.
+- `retry_with_workflow_id`: the publisher retries with `metadata.approval.workflow_id`; the approval system resolves by workflow reference.
+- `publisher_waits`: the publisher or hook wrapper waits/polls until the approval system returns a terminal state, then resumes or blocks without requiring model-level retry.
+- `manual_retry`: the user or operator must retry the action manually after approval.
+
+Approval metadata is evidence, not authority. A publisher-supplied `metadata.approval.status: "approved"` MUST NOT be sufficient to allow execution unless verified by the responsible subscriber, bus, gateway, or approval system.
+
+Implementations MAY emit additional non-canonical PascalCase lifecycle events while AHP-007 is in Draft:
+
+| Event type | Phase | Description |
+|---|---|---|
+| `ApprovalRequested` | during | A human or workflow approval was requested for a pending action |
+| `ApprovalGranted` | during | The pending action was approved |
+| `ApprovalDenied` | during | The pending action was rejected |
+| `ToolUseResumed` | after | A paused tool call resumed after approval |
+| `ToolUseBlocked` | after | A paused tool call was denied, expired, cancelled, or timed out |
+
+These events are optional in v0.1 and do not affect Bronze, Silver, or Gold conformance scoring until the Working Group accepts or rejects AHP-007.
+
+## 10. Examples
 
 ### Minimal valid event
 

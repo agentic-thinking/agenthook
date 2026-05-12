@@ -1,27 +1,38 @@
-# Maintainers
+# Repository Maintainers
 
-This file lists individuals with merge access to this repository, and their roles. Updated as Working Group composition changes.
+This file lists individuals with merge access to this repository, and their
+roles. Governance-tier Maintainers and Working Group participants are listed in
+[`MEMBERS.md`](./MEMBERS.md).
 
 ## Editor team (merge access)
 
 | Name | Role | Affiliation |
 |---|---|---|
-| P-ruocco | Editor (sole, until WG ratified) | Agentic Thinking Limited |
+| AgenticThinkingUK | Editor (sole, until WG ratified) | Agentic Thinking Limited |
 
 ## Becoming a maintainer
 
 Editor team expansion follows the rules in [`GOVERNANCE.md`](./GOVERNANCE.md). Briefly:
 
-- Sustained contribution via accepted AHPs or substantive PR review
+- Sustained contribution via accepted AHPs, implementation work, conformance
+  work, or substantive PR review
 - Nomination by an existing Editor or Working Group member
-- Approval by majority of Working Group members at the next monthly meeting
+- Approval by majority of active Working Group Members at the next monthly
+  meeting
 - Public listing in this file once accepted
 
 ## How merges work
 
-- **Editorial PRs** (typo, formatting, link, clarification): one Editor approval; merge by any Editor.
-- **AHP PRs** (substantive specification changes): require the AHP file to be Accepted per [`GOVERNANCE.md`](./GOVERNANCE.md), and approval by majority of Working Group members.
-- **Breaking changes** (envelope shape, removal of required field): require unanimous Working Group approval and a deprecation window of no less than nine months.
+- **Editorial PRs** (typo, formatting, link, clarification): one Editor
+  approval; merge by any Editor.
+- **Routine area PRs**: may be merged by a governance-tier Maintainer within
+  their recorded area of ownership when seconded per [`GOVERNANCE.md`](./GOVERNANCE.md).
+- **AHP PRs** (substantive specification changes): require the AHP file to be
+  Accepted per [`GOVERNANCE.md`](./GOVERNANCE.md), and approval by majority of
+  active Working Group Members.
+- **Breaking changes** (envelope shape, removal of required field): require
+  unanimous active Working Group Member approval and a deprecation window of no
+  less than nine months.
 
 ## Code of Conduct enforcement
 

@@ -1,36 +1,60 @@
-# Members
+# AgentHook Working Group Members
 
-This file tracks the composition of the AgentHook Working Group, including the stewardship seat and any confirmed members. It is updated as composition changes.
+This document lists current participants in each tier of AgentHook governance.
+See [`GOVERNANCE.md`](./GOVERNANCE.md) for the definition of each tier and the
+rights and responsibilities associated with it.
 
-## Stewardship seat (non-voting)
+## Inaugural Working Group Members
+
+_Closed at specification v1.0 release. Listed alphabetically by organisation._
+
+- [To be populated before v1.0 public draft]
+
+## Elected Working Group Members
+
+_Admitted by majority Working Group vote after sustained Maintainer
+contribution and at least one conformant implementation at Silver or Gold
+tier._
+
+- [None yet; tier opens after v1.0]
+
+## Maintainers
+
+_Appointed by majority Working Group vote. Annual review. Listed
+alphabetically by area of ownership._
+
+| Area of ownership | Name / organisation | Since | Status |
+|---|---|---|---|
+| [To be populated] | [To be populated] | [To be populated] | Active |
+
+## Implementer Track Participants
+
+_Organisations shipping or actively shipping an AgentHook-conformant publisher,
+subscriber, or collector. Self-nominated by PR or membership issue, ratified by
+Working Group second._
+
+| Organisation | Implementation | Conformance tier | Since | Status |
+|---|---|---|---|---|
+| [To be populated] | [To be populated] | [To be populated] | [To be populated] | Active |
+
+## Stewardship Seat
 
 | Organisation | Role |
 |---|---|
-| Agentic Thinking Limited (UK) | Chair (procedural facilitation only) |
+| Agentic Thinking Limited (UK) | Chair, procedural facilitation only |
 
-## Founding members
+## Past and Inactive Members
 
-**Working group composition: open to self-nomination.**
+_Members or participants who have stepped down, become inactive, or whose
+status has lapsed. Recorded for historical traceability._
 
-Founding membership is open to organisations operating an agent runtime that emits, or is preparing to emit, lifecycle hooks materially relevant to the specification. The Charter becomes effective in its full Working-Group form upon ratification by the first three independent Founding Members.
+- [None yet]
 
-To self-nominate, file a Working Group membership issue using the [membership template](https://github.com/agentic-thinking/agenthook/issues/new?template=membership.md). Self-nominations are reviewed at the next monthly Working Group meeting and confirmed by consensus of seated members.
+## Conformant Implementations
 
-Membership criteria:
+This is distinct from membership. Any organisation may submit an implementation
+for conformance testing under the terms of [`CONFORMANCE/`](./CONFORMANCE/)
+regardless of Working Group membership.
 
-- Operates an agent runtime that emits, or is preparing to emit, lifecycle hooks
-- Commits to approximately 1-2 hours per month of meeting time plus pull-request review
-- Consents to public listing in this file once accepted
-- Discloses any conflicts of interest with other agent runtimes, hook standards, or compliance vendors
-
-Founding member identities are added to this file when written acceptance is received and the invitee consents to public listing.
-
-## Elected members
-
-None at present. Elected membership opens after Founding Members are confirmed and the Working Group ratifies the procedure for elections.
-
-## Conformant implementations
-
-This is distinct from membership. Any organisation may submit an implementation for conformance testing under the terms of [`CONFORMANCE/`](./CONFORMANCE/) regardless of Working Group membership.
-
-The conformant implementations roster will be maintained at `CONFORMANCE/REGISTRY.md` once the test suite ships.
+The conformant implementations roster will be maintained at
+`CONFORMANCE/REGISTRY.md` once the test suite ships.
