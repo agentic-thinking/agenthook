@@ -1,0 +1,18 @@
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "decision": "ask",
+  "reason": "Remote server access requires human approval before execution",
+  "metadata": {
+    "approval": {
+      "required": true,
+      "status": "pending",
+      "workflow_id": "wf_6f07566b",
+      "action_id": "act_32",
+      "department": "management",
+      "reviewer_ref": "group:management",
+      "requested_at": "2026-05-08T03:42:00Z",
+      "expires_at": "2026-05-08T03:57:00Z",
+      "resume_policy": "retry_same_event"
+    }
+  }
+}

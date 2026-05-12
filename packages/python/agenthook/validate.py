@@ -28,7 +28,13 @@ def load_schema(path: str | Path | None = None) -> dict[str, Any]:
         "properties": {
             "schema_version": {"type": "integer"},
             "event_id": {"type": "string", "format": "uuid"},
-            "event_type": {"type": "string", "enum": sorted(CANONICAL_EVENT_TYPES)},
+            "event_type": {
+                "type": "string",
+                "anyOf": [
+                    {"enum": sorted(CANONICAL_EVENT_TYPES)},
+                    {"pattern": "^[A-Z][A-Za-z0-9]*$"},
+                ],
+            },
             "timestamp": {"type": "string", "format": "date-time"},
             "source": {"type": "string"},
             "agent_id": {"type": "string"},
@@ -52,8 +58,8 @@ def _fallback_validate(event: dict[str, Any]) -> list[str]:
         uuid.UUID(str(event.get("event_id", "")))
     except Exception:
         errors.append("event_id must be a UUID")
-    if event.get("event_type") not in CANONICAL_EVENT_TYPES:
-        errors.append(f"event_type must be canonical: {event.get('event_type')!r}")
+    if not re.match(r"^[A-Z][A-Za-z0-9]*$", str(event.get("event_type", ""))):
+        errors.append(f"event_type must be canonical or PascalCase: {event.get('event_type')!r}")
     ts = str(event.get("timestamp", ""))
     try:
         datetime.fromisoformat(ts.replace("Z", "+00:00"))

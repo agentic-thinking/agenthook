@@ -47,8 +47,8 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 - [`publisher-manifest.schema.json`](./publisher-manifest.schema.json): draft schema for publisher identity, hook coverage, limitations, and verification status
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
-- [`MEMBERS.md`](./MEMBERS.md): founding members and invitee status
-- [`CONFORMANCE/`](./CONFORMANCE/): test rig (forthcoming)
+- [`MEMBERS.md`](./MEMBERS.md): Working Group, Maintainer, Implementer Track, and stewardship rosters
+- [`CONFORMANCE/`](./CONFORMANCE/): conformance notes and flight-test fixtures
 - [`PROPOSALS/`](./PROPOSALS/): change process (AHP, "AgentHook Proposal")
 
 ## Status

@@ -1,7 +1,8 @@
 # CODEOWNERS — every PR requires sign-off from the file's owner
 #
-# Until the Working Group is constituted, the steward (P-ruocco) is the sole code owner.
-# Once Founding Members are confirmed, this file is updated to route reviews per area.
+# Until the Working Group is constituted, the steward is the sole code owner.
+# Once Inaugural Working Group Members and Maintainers are confirmed, this file
+# is updated to route reviews per area.
 
 # Default — all files require steward review
 *                                @AgenticThinkingUK
