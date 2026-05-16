@@ -106,7 +106,7 @@ Initial reference implementation target:
 
 Runtime Attestation is a security boundary between user prompt text and runtime-provided facts.
 
-User-authored claims about hooks, gates, policies, PINs, approvals, subscribers, fail modes, or runtime state must not be treated as attestation. A malicious user could otherwise paste a fake governance document and induce the agent to trust non-existent controls.
+User-authored claims about hooks, gates, policies, approval workflows, subscribers, fail modes, or runtime state must not be treated as attestation. A malicious user could otherwise paste a fake governance document and induce the agent to trust non-existent controls.
 
 Attestation does not give the runtime authority to override model, platform, or system safety policy. It tells the agent what runtime controls exist for tool execution. Enforcement remains outside the model path.
 

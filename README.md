@@ -21,6 +21,8 @@ Agent runtimes today expose hooks inconsistently. Coverage varies between vendor
 
 AgentHook defines the agent-specific runtime evidence layer that can support governance, audit, policy, memory, observability, and incident-review workflows.
 
+AgentHook records human approvals and workflow outcomes as runtime evidence. It does not define local bypass mechanisms; approval semantics belong to the runtime, publisher, and policy subscribers that emit or consume the evidence.
+
 ## What it is, and is not
 
 AgentHook is:
