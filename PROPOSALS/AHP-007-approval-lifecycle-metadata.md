@@ -103,15 +103,15 @@ No deprecation is required.
 
 ## Reference implementation
 
-HookBus + CRE-AgentProtect + approval-workflow lab validation on 2026-05-08:
+HookBus + AgentProtect CRE + approval-workflow lab validation on 2026-05-08:
 
 1. A `PreToolUse` event attempted a sensitive remote administration action.
-2. CRE-AgentProtect returned `decision: "ask"`.
+2. AgentProtect CRE returned `decision: "ask"`.
 3. The approval workflow created a workflow record.
 4. The notification layer sent an approval request to the configured reviewer.
 5. Human approval was recorded.
 6. The same event was retried.
-7. CRE-AgentProtect returned `decision: "allow"` with the approved workflow id.
+7. AgentProtect CRE returned `decision: "allow"` with the approved workflow id.
 8. The tool call resumed and produced disk output.
 
 Implementation sketch:
