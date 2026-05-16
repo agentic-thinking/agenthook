@@ -23,6 +23,8 @@ AgentHook defines the agent-specific runtime evidence layer that can support gov
 
 AgentHook records human approvals and workflow outcomes as runtime evidence. It does not define local bypass mechanisms; approval semantics belong to the runtime, publisher, and policy subscribers that emit or consume the evidence.
 
+AgentHook also needs to distinguish an installed hook from a trusted hook. Draft [`AHP-008`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md) defines hook fingerprint trust metadata so runtimes, publishers, buses, and enterprise registries can report whether an active hook entry is trusted, modified, untrusted, disabled, unknown, or unsupported.
+
 ## What it is, and is not
 
 AgentHook is:
@@ -55,7 +57,7 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
+Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Approval Lifecycle Metadata is a draft convention proposed in [`PROPOSALS/AHP-007-approval-lifecycle-metadata.md`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md). Hook Fingerprint Trust is a draft convention proposed in [`PROPOSALS/AHP-008-hook-fingerprint-trust.md`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
 
 ## Quick start
 

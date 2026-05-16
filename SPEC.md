@@ -18,6 +18,7 @@ The specification covers:
 7. Publisher manifests as an interim local-first identity, coverage, and verification layer
 8. Managed runtime identity and approval metadata for enterprise deployments
 9. Approval lifecycle metadata for autonomous-agent pause, approval, retry, and resume flows
+10. Hook fingerprint trust metadata for reviewed, modified, untrusted, and disabled hook entries
 
 It does not cover:
 
@@ -268,7 +269,7 @@ Naming rules:
 | `tool_input_executed` | object | Tool input actually executed (`PostToolUse` only). SHOULD match the admitted `PreToolUse.tool_input` unless the publisher records an explicit mutation reason |
 | `duration_ms` | integer | Tool wall-clock duration (`PostToolUse` only) |
 | `exit_code` | integer | Tool exit code where applicable (`PostToolUse` only) |
-| `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 9. |
+| `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 10. |
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
 
@@ -277,6 +278,7 @@ Subscribers may add arbitrary keys, but using a name that collides with the cano
 | Key | Type | Purpose |
 |---|---|---|
 | `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 6. |
+| `hook_trust` | object or array | Optional hook fingerprint trust state for active hook entries. See section 9. |
 
 ## 4. Hook delivery semantics
 
@@ -423,7 +425,43 @@ Collectors and buses MAY use publisher manifests to display onboarding state, su
 
 The `schema_version` field allows implementations to negotiate envelope shape. Breaking changes increment `schema_version`. Subscribers MUST handle at least the version they were authored for; bus implementations MAY translate between versions.
 
-## 9. Approval lifecycle metadata
+## 9. Hook fingerprint trust metadata
+
+Agent runtimes may install hooks, commands, plugins, or adapters whose contents can change over time. A hook entry being present in runtime configuration is not the same as the hook being reviewed, trusted, and still matching the approved governance path.
+
+Publishers MAY include hook fingerprint trust metadata inside `metadata.runtime_attestation`, `metadata.managed_runtime`, or top-level event `metadata.hook_trust`. Publisher manifests MAY declare expected hook fingerprints. This convention is expanded in [`AHP-008`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md).
+
+Minimum shape:
+
+```json
+{
+  "metadata": {
+    "hook_trust": {
+      "hook_id": "uk.agenticthinking.publisher.openai.codex-cli.pretooluse",
+      "runtime": "codex-cli",
+      "hook_event": "PreToolUse",
+      "fingerprint": "sha256:6c8a...",
+      "fingerprint_alg": "sha256",
+      "trust_status": "trusted",
+      "source": "local_config",
+      "config_path": "~/.codex/hooks.json"
+    }
+  }
+}
+```
+
+Recommended trust states:
+
+- `trusted`: the observed fingerprint matches a reviewed hook entry.
+- `modified`: the hook exists, but the observed fingerprint differs from the trusted fingerprint.
+- `untrusted`: the hook exists, but no trusted fingerprint has been recorded.
+- `disabled`: the hook was expected but is not active.
+- `unknown`: the runtime or publisher could not determine trust state.
+- `not_supported`: the runtime does not expose hook fingerprint or trust data.
+
+Hook trust metadata is evidence, not authority. A publisher claiming `trust_status: "trusted"` MUST NOT be sufficient for an allow decision unless the responsible runtime, bus, gateway, registry, or policy subscriber verifies the claim. Regulated or high-assurance deployments SHOULD fail closed when a required admission-bound hook is `modified`, `untrusted`, `disabled`, or `unknown`.
+
+## 10. Approval lifecycle metadata
 
 Autonomous agents often need to pause a tool call until a human, workflow system, or policy owner approves or rejects the action. AgentHook models this without changing the envelope shape.
 
