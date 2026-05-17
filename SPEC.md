@@ -19,6 +19,7 @@ The specification covers:
 8. Managed runtime identity and approval metadata for enterprise deployments
 9. Approval lifecycle metadata for autonomous-agent pause, approval, retry, and resume flows
 10. Hook fingerprint trust metadata for reviewed, modified, untrusted, and disabled hook entries
+11. Runtime contract files as a draft convention for agent-facing behavioural contracts
 
 It does not cover:
 
@@ -234,6 +235,8 @@ The specification defines ten canonical event types. Implementations MAY emit ad
 
 Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.1 canonical ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
 
+Runtime contract events such as `RuntimeContractLoaded` are also outside the v0.1 canonical ten-event conformance set while [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md) is in Draft. Implementations MAY emit them as additional PascalCase event types to record that `AgentHook.md`, `agenthook.lock.json`, or equivalent contract material was discovered, loaded, hashed, and verified before the agent acted.
+
 Naming rules:
 
 - PascalCase, no underscores or dots
@@ -298,6 +301,14 @@ Implementations are expected to honour the following:
 - **Ordering**: events within a `session_id` MUST be delivered in publication order. Ordering across sessions is not guaranteed.
 
 Conforming publishers MUST document their fail-mode default and provide an operator-facing toggle.
+
+### Runtime contract file
+
+Agent-facing behavioural requirements MAY be declared in `AgentHook.md`, a draft human-readable runtime contract file proposed in [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md). Publishers MAY also recognise `AGENTHOOK.md` as a compatibility alias.
+
+`AgentHook.md` is intended to describe how a participating runtime treats governance context, approval decisions, sensitive operational details, session identifiers, fail modes, and non-bypassable `ask` workflows. It is not a substitute for enforcement. Enforcement remains the responsibility of the runtime, publisher, bus, gateway, and policy subscribers.
+
+Publishers that load a runtime contract SHOULD record the loaded path, digest, required hooks, signature status, and fail mode in runtime attestation or in an optional `RuntimeContractLoaded` event.
 
 ## 5. Conformance levels
 

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "contract_version": "0.1-draft",
+  "human_readable_path": "./AgentHook.md",
+  "publisher_manifest": "./agenthook.publisher.json",
+  "required_hooks": [
+    "SessionStart",
+    "UserPromptSubmit",
+    "PreToolUse",
+    "PostToolUse",
+    "Stop"
+  ],
+  "fail_mode": "fail_closed",
+  "signature_status": "unsigned",
+  "contract_hash": "sha256:example-redacted"
+}
