@@ -68,3 +68,6 @@ These will be drafted by the editor team and circulated for Working Group review
 - [`AHP-004` — Runtime Attestation](./AHP-004-runtime-attestation.md)
 - [`AHP-005` — Governance Context Metadata](./AHP-005-governance-context-metadata.md)
 - [`AHP-006` — Managed Runtime Identity and Device Registry](./AHP-006-managed-runtime-identity.md)
+- [`AHP-007` — Approval Lifecycle Metadata](./AHP-007-approval-lifecycle-metadata.md)
+- [`AHP-008` — Hook Fingerprint Trust](./AHP-008-hook-fingerprint-trust.md)
+- [`AHP-009` — AgentHook Runtime Contract File](./AHP-009-runtime-contract-file.md)

@@ -88,4 +88,4 @@ Director
 Agentic Thinking Limited
 Date: 26 April 2026
 
-**Countersignature:** This Charter shall be countersigned by Founding Members upon their confirmation, signifying acceptance of the Working Group governance terms set out herein. Until ratification, the Charter binds the steward unilaterally as the provisional pre-signature commitment.
+**Countersignature:** This Charter shall be countersigned by Inaugural Working Group Members upon their confirmation, signifying acceptance of the Working Group governance terms set out herein. Until ratification, the Charter binds the steward unilaterally as the provisional pre-signature commitment.

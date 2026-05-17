@@ -49,12 +49,12 @@ class AgentHookCliTests(unittest.TestCase):
 
     def test_validate_rejects_bad_uuid_and_event(self) -> None:
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            json.dump({"event_id": "bad", "event_type": "Bad", "timestamp": "x", "source": ""}, fh)
+            json.dump({"event_id": "bad", "event_type": "bad_event", "timestamp": "x", "source": ""}, fh)
             path = fh.name
         try:
             proc = run_cli("validate", path)
             self.assertNotEqual(proc.returncode, 0)
-            self.assertIn("Bad", proc.stderr)
+            self.assertIn("bad_event", proc.stderr)
             self.assertIn("uuid", proc.stderr.lower())
         finally:
             Path(path).unlink(missing_ok=True)

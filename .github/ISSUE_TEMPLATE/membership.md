@@ -1,16 +1,31 @@
 ---
 name: Working Group membership self-nomination
-about: Express interest in joining the Working Group as a Founding or Elected member
+about: Express interest in joining the Implementer Track, Maintainer track, or Working Group
 title: "[membership] <organisation name>"
 labels: ["membership"]
 ---
 
-Self-nominations for Working Group membership are welcomed per `MEMBERS.md`. Please complete this form. The Working Group reviews nominations at the next monthly meeting.
+Self-nominations for Implementer Track participation and future Working Group
+membership are welcomed per `MEMBERS.md`. Please complete this form. The
+Working Group reviews nominations at the next monthly meeting.
 
 ## Organisation
 
-## Agent runtime you operate
-What runtime does your organisation publish or operate that emits, or could emit, lifecycle hooks?
+## Requested tier
+Which tier are you requesting: Implementer Track Participant, Maintainer, or
+future Elected Working Group Member?
+
+## Implementation
+What AgentHook-conformant publisher, subscriber, collector, or runtime
+integration has your organisation shipped or is actively shipping?
+
+## Conformance status
+If known, what conformance tier does the implementation target: Bronze, Silver,
+or Gold?
+
+## Area of ownership
+For Maintainer nominations, what area would you maintain: event types,
+schemas, conformance, documentation, SDKs, AHPs, or another defined area?
 
 ## Time commitment
 Do you commit to approximately 1-2 hours per month of meeting time plus PR review?
