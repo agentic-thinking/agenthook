@@ -86,7 +86,7 @@ Optional additional event types:
 | `ToolUseResumed` | after | A paused tool call resumed after approval |
 | `ToolUseBlocked` | after | A paused tool call was denied, expired, cancelled, or timed out |
 
-These event types remain non-canonical while this Proposal is in Draft. They do not change the v0.1 ten-event conformance set.
+These event types remain non-canonical while this Proposal is in Draft. They do not change the v0.2 core ten-event conformance set.
 
 ## Backwards-compatibility impact
 

@@ -62,7 +62,7 @@ The runtime contract SHOULD cover:
 
 ## RuntimeContractLoaded event
 
-Publishers MAY emit an additional PascalCase event named `RuntimeContractLoaded` before the first governed action in a session. This event is not part of the v0.1 canonical ten-event conformance set while this Proposal remains Draft.
+Publishers MAY emit an additional PascalCase event named `RuntimeContractLoaded` before the first governed action in a session. This event is not part of the v0.2 core ten-event conformance set while this Proposal remains Draft.
 
 Minimum metadata shape:
 
@@ -74,7 +74,7 @@ Minimum metadata shape:
     "runtime_contract": {
       "human_readable_path": "./AgentHook.md",
       "lock_path": "./agenthook.lock.json",
-      "contract_version": "0.1-draft",
+      "contract_version": "0.2-draft",
       "contract_hash": "sha256:...",
       "signature_status": "unsigned",
       "required_hooks": ["UserPromptSubmit", "PreToolUse", "PostToolUse", "Stop"],

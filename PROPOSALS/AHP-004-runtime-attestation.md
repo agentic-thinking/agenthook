@@ -23,7 +23,7 @@ The strongest form of runtime evidence is not a receipt logged after the fact. I
 
 ## Current behaviour
 
-`SPEC.md` v0.1 defines the AgentHook envelope, ten canonical event types, standard metadata keys, hook delivery semantics, and publisher conformance levels. It does not define a standard way for a publisher to declare the runtime controls active in a session.
+`SPEC.md` v0.2 defines the AgentHook envelope, ten canonical event types, standard metadata keys, hook delivery semantics, and publisher conformance levels. It does not define a standard way for a publisher to declare the runtime controls active in a session.
 
 The current envelope already has a `metadata` object. This Proposal uses that extension point and does not change the envelope shape.
 

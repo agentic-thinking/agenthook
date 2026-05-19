@@ -1,6 +1,6 @@
 # AgentHook Runtime Contract
 
-Version: 0.1-draft
+Version: 0.2-draft
 Runtime: example-agent
 Publisher manifest: ./agenthook.publisher.json
 Lock file: ./agenthook.lock.json

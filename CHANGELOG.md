@@ -6,14 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-19
+
 ### Added
 - Draft Runtime Attestation proposal (`AHP-004`) defining `metadata.runtime_attestation` as a non-breaking way for publishers to declare active runtime controls.
 - Draft `runtime-attestation.schema.json`.
 - Security guidance for the prompt-injection boundary between user-authored policy text and publisher-supplied runtime attestation.
 - `STANDARDS.md` describing how AgentHook complements governance, observability, attestation, provenance, and policy-engine standards without replacing them.
 - Draft Governance Context Metadata proposal (`AHP-005`) defining `metadata.governance_context` as advisory task, policy, and workflow context inside the existing envelope.
+- Draft Managed Runtime Identity proposal (`AHP-006`) for runtime instance, user, device, workload, and registry binding metadata.
+- Draft Approval Lifecycle Metadata proposal (`AHP-007`) for ask, approval, denial, retry, resume, and timeout flows.
+- Draft Hook Fingerprint Trust proposal (`AHP-008`) for trusted, modified, untrusted, disabled, unknown, and unsupported hook states.
+- Draft Runtime Contract File proposal (`AHP-009`) defining `AgentHook.md`, `agenthook.lock.json`, optional signatures, and `RuntimeContractLoaded`.
+- Example `AgentHook.md` and `agenthook.lock.json` files for runtime contract discovery.
 
 ### Changed
+- Up-issued the draft specification to v0.2 to reflect runtime attestation, managed identity, approval lifecycle metadata, hook fingerprint trust, and runtime contract discovery work.
 - Repositioned AgentHook as an AI-agent runtime evidence specification, with portfolio governance described as a use case rather than the scope of the standard.
 - Removed product-specific policy subscriber examples from steward-facing standards positioning.
 

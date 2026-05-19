@@ -1,6 +1,6 @@
 # AgentHook
 
-> **DRAFT — pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
+> **DRAFT — v0.2, pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
 
 An open technical specification for AI-agent runtime evidence: structured, subscriber-addressable envelopes for lifecycle events, tool calls, human approvals, policy denials, model interactions, and runtime control attestations.
 
@@ -59,7 +59,7 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Approval Lifecycle Metadata is a draft convention proposed in [`PROPOSALS/AHP-007-approval-lifecycle-metadata.md`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md). Hook Fingerprint Trust is a draft convention proposed in [`PROPOSALS/AHP-008-hook-fingerprint-trust.md`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md). AgentHook Runtime Contract Files are a draft convention proposed in [`PROPOSALS/AHP-009-runtime-contract-file.md`](./PROPOSALS/AHP-009-runtime-contract-file.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
+v0.2 public draft, pre-v1.0. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Approval Lifecycle Metadata is a draft convention proposed in [`PROPOSALS/AHP-007-approval-lifecycle-metadata.md`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md). Hook Fingerprint Trust is a draft convention proposed in [`PROPOSALS/AHP-008-hook-fingerprint-trust.md`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md). AgentHook Runtime Contract Files are a draft convention proposed in [`PROPOSALS/AHP-009-runtime-contract-file.md`](./PROPOSALS/AHP-009-runtime-contract-file.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
 
 ## Quick start
 

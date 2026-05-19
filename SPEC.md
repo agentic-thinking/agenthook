@@ -1,6 +1,6 @@
 # AgentHook Specification
 
-**Version:** 0.1 (draft)
+**Version:** 0.2 (draft)
 **Status:** pre-1.0, expected to change
 **Editors:** Working Group (see [`MEMBERS.md`](./MEMBERS.md))
 **Licence:** Apache License 2.0
@@ -233,9 +233,9 @@ The specification defines ten canonical event types. Implementations MAY emit ad
 | `AgentHandoff` | during | The agent is delegating to another agent |
 | `ErrorOccurred` | after | An error was raised that did not terminate the session |
 
-Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.1 canonical ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
+Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.2 core ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
 
-Runtime contract events such as `RuntimeContractLoaded` are also outside the v0.1 canonical ten-event conformance set while [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md) is in Draft. Implementations MAY emit them as additional PascalCase event types to record that `AgentHook.md`, `agenthook.lock.json`, or equivalent contract material was discovered, loaded, hashed, and verified before the agent acted.
+Runtime contract events such as `RuntimeContractLoaded` are also outside the v0.2 core ten-event conformance set while [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md) is in Draft. Implementations MAY emit them as additional PascalCase event types to record that `AgentHook.md`, `agenthook.lock.json`, or equivalent contract material was discovered, loaded, hashed, and verified before the agent acted.
 
 Naming rules:
 
@@ -425,7 +425,7 @@ The manifest is an interim local-first, machine-readable declaration of:
 
 The manifest is not an enforcement document. It MUST NOT contain secrets, bearer tokens, private endpoints, policy rules, or executable install logic. Subscribers MUST treat manifest claims as evidence about publisher coverage, not as authority to allow or deny an action.
 
-Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.1.
+Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.2.
 
 Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active. Native AgentHook runtimes may expose equivalent manifest metadata through their own standard implementation once the draft reaches stable standard status.
 
@@ -541,7 +541,7 @@ Implementations MAY emit additional non-canonical PascalCase lifecycle events wh
 | `ToolUseResumed` | after | A paused tool call resumed after approval |
 | `ToolUseBlocked` | after | A paused tool call was denied, expired, cancelled, or timed out |
 
-These events are optional in v0.1 and do not affect Bronze, Silver, or Gold conformance scoring until the Working Group accepts or rejects AHP-007.
+These events are optional in v0.2 and do not affect Bronze, Silver, or Gold conformance scoring until the Working Group accepts or rejects AHP-007.
 
 ## 10. Examples
 
