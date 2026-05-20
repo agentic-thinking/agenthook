@@ -42,8 +42,13 @@ Every event is a JSON object conforming to the following shape. Field requiremen
   "session_id": "session-abc123",
   "correlation_id": "run-7f3b9a2e",
   "evidence_phase": "pre_commit",
-  "tool_name": "Bash",
-  "tool_input": { "command": "git push origin main" },
+  "tool_name": "read",
+  "tool_input": { "path": "/workspace/customer-risk.md" },
+  "action": "read",
+  "resource_kind": "file",
+  "resource": "/workspace/customer-risk.md",
+  "resource_scope": "local",
+  "operation_risk": "sensitive_read",
   "metadata": { "model": "claude-sonnet-4-6", "...": "..." },
   "annotations": { "subscribers": { } }
 }
@@ -62,6 +67,11 @@ Every event is a JSON object conforming to the following shape. Field requiremen
 | `evidence_phase` | string enum | no | Evidence class for this event: `pre_commit`, `post_hoc`, or `observational` |
 | `tool_name` | string | for `PreToolUse` and `PostToolUse` | Which tool the agent is calling |
 | `tool_input` | object | no | Tool-specific input. Publishers MUST NOT validate; subscribers decide what matters |
+| `action` | string | no | Publisher-agnostic operation being attempted, such as `read`, `write`, `edit`, `execute`, `query`, `send`, `open`, `search`, `approve`, or `handoff` |
+| `resource_kind` | string | no | Publisher-agnostic resource class, such as `file`, `directory`, `shell`, `database`, `url`, `email`, `repository`, `package`, `container`, `kubernetes`, `cloud`, `model`, or `agent` |
+| `resource` | string or object | no | Canonical resource target for policy and audit. Use a string for simple targets such as paths, URLs, repository names, package names, database names, or email recipients; use an object when the target is naturally composite |
+| `resource_scope` | string | no | Scope of the target, such as `local`, `workspace`, `remote`, `public_web`, `internal_network`, `tenant`, `production`, or `unknown` |
+| `operation_risk` | string | no | Advisory risk label for the attempted operation, such as `sensitive_read`, `write`, `destructive_write`, `external_transfer`, `credential_access`, `publication`, or `runtime_change` |
 | `metadata` | object | no | Hook-specific structured data (see section 3) |
 | `annotations` | object | no | Free-form subscriber/operator notes; publishers SHOULD NOT depend on these |
 
@@ -74,6 +84,50 @@ The bus (where one is present) MAY enrich an event with `agent_id` derived from 
 - `observational`: the event records runtime state or model output and is not represented as an authorisation receipt.
 
 Publishers MUST NOT represent `post_hoc` or `observational` events as equivalent to `pre_commit` authorisation evidence.
+
+### Normalized action and resource fields
+
+Agent runtimes expose different native tools for the same semantic operation. One runtime may read a file through a shell command such as `cat /workspace/customer-risk.md`; another may expose a native `read` tool with `{ "path": "/workspace/customer-risk.md" }`; a third may expose an MCP file resource. Policy subscribers MUST NOT be forced to treat all of those as a fake shell command.
+
+For `PreToolUse` and `PostToolUse`, publishers SHOULD preserve the native runtime surface in `tool_name` and `tool_input`, and SHOULD also emit normalized action/resource fields when the attempted operation can be identified. The normalized fields are publisher-agnostic policy hints. They describe what is being attempted, not which runtime produced it.
+
+Example:
+
+```json
+{
+  "event_type": "PreToolUse",
+  "source": "example-runtime",
+  "tool_name": "read",
+  "tool_input": { "path": "/workspace/customer-risk.md" },
+  "action": "read",
+  "resource_kind": "file",
+  "resource": "/workspace/customer-risk.md",
+  "resource_scope": "workspace",
+  "operation_risk": "sensitive_read"
+}
+```
+
+Subscribers SHOULD prefer normalized `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` for portable policy where present, and MAY fall back to runtime-specific `tool_name` and `tool_input` parsing when normalized fields are absent. Publishers SHOULD NOT alias or rewrite `tool_name` solely to satisfy a subscriber's legacy rule shape; if compatibility data is needed, it SHOULD be placed in `metadata` without hiding the native tool.
+
+Recommended action vocabulary is intentionally small and extensible:
+
+| Action | Meaning |
+|---|---|
+| `read` | Inspect or retrieve data without intended modification |
+| `write` | Create or replace data |
+| `edit` | Modify existing data |
+| `delete` | Remove data or resources |
+| `execute` | Run shell, script, code, workflow, or tool execution |
+| `query` | Query a database, API, index, or search backend |
+| `open` | Open a URL, application, file, or runtime resource |
+| `send` | Send email, message, notification, network request, or external transfer |
+| `publish` | Publish package, code, content, model output, or public artefact |
+| `approve` | Approve, deny, or record a human/automated decision |
+| `handoff` | Delegate work to another agent, runtime, or workflow |
+
+Recommended resource kinds are also extensible: `file`, `directory`, `shell`, `process`, `database`, `table`, `url`, `email`, `message`, `repository`, `package`, `container`, `kubernetes`, `cloud`, `model`, `agent`, `approval`, `ticket`, `secret`, and `unknown`.
+
+If a publisher cannot identify the operation safely, it SHOULD omit the normalized fields rather than guess. If a collector or bus enriches these fields after receipt, it SHOULD record that enrichment under `annotations` or `metadata` so downstream auditors can distinguish publisher-supplied evidence from derived evidence.
 
 ### Identity metadata
 

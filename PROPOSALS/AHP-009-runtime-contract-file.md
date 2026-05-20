@@ -101,9 +101,11 @@ Recommended fields:
 
 Bronze publishers MAY discover `AgentHook.md` and record its digest in runtime attestation.
 
-Silver publishers SHOULD load `AgentHook.md`, load `agenthook.lock.json` when present, and emit `RuntimeContractLoaded` before the first governed action.
+Bronze, Silver, and Gold v0.2 conformance remains hook and evidence based. This draft does not make `AgentHook.md`, `agenthook.lock.json`, signatures, or `RuntimeContractLoaded` mandatory for Silver.
 
-Gold publishers SHOULD verify the lock file and signature where present. If high-assurance mode is requested and the required runtime contract is missing, modified, unsigned, or invalid, the publisher SHOULD fail closed or downgrade its conformance claim.
+High-assurance publishers SHOULD load `AgentHook.md`, load `agenthook.lock.json` when present, and emit `RuntimeContractLoaded` before the first governed action. Publishers claiming a Platinum or equivalent high-assurance profile SHOULD verify signatures when supplied and MUST NOT enter that high-assurance mode if required runtime contract material is missing, modified, or invalid.
+
+If high-assurance mode is requested and the required runtime contract is missing, modified, unsigned, or invalid, the publisher SHOULD fail closed or downgrade its conformance claim.
 
 The contract file is not a substitute for enforcement. It is the reviewed, discoverable declaration of expected runtime behaviour. Enforcement still belongs to the runtime, publisher, bus, gateway, and policy subscribers.
 

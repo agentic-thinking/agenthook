@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "event_id": "4a5306cf-60fd-4f4f-a5b4-96dfcb6c5f5e",
+  "event_type": "PreToolUse",
+  "timestamp": "2026-05-20T15:55:00Z",
+  "source": "example-runtime",
+  "agent_id": "demo-agent",
+  "session_id": "sess-normalized-resource-demo",
+  "correlation_id": "run-normalized-resource-demo",
+  "evidence_phase": "pre_commit",
+  "tool_name": "read",
+  "tool_input": {
+    "path": "/workspace/customer-risk.md"
+  },
+  "action": "read",
+  "resource_kind": "file",
+  "resource": "/workspace/customer-risk.md",
+  "resource_scope": "workspace",
+  "operation_risk": "sensitive_read",
+  "metadata": {
+    "control_point": "pre_action",
+    "enforcement_capable": true
+  },
+  "annotations": {}
+}

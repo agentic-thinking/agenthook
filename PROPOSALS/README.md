@@ -71,3 +71,5 @@ These will be drafted by the editor team and circulated for Working Group review
 - [`AHP-007` — Approval Lifecycle Metadata](./AHP-007-approval-lifecycle-metadata.md)
 - [`AHP-008` — Hook Fingerprint Trust](./AHP-008-hook-fingerprint-trust.md)
 - [`AHP-009` — AgentHook Runtime Contract File](./AHP-009-runtime-contract-file.md)
+- [`AHP-010` — Goal Context and Terminal Semantics](./AHP-010-goal-context-terminal-semantics.md)
+- [`AHP-011` — Normalized Action and Resource Fields](./AHP-011-normalized-action-resource.md)

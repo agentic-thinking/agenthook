@@ -58,13 +58,19 @@ def build_event(
     *,
     tool_name: str = "",
     tool_input: dict[str, Any] | None = None,
+    evidence_phase: str = "",
+    action: str = "",
+    resource_kind: str = "",
+    resource: str | dict[str, Any] | None = None,
+    resource_scope: str = "",
+    operation_risk: str = "",
     metadata: dict[str, Any] | None = None,
     agent_id: str = "",
     correlation_id: str = "",
     event_id: str | None = None,
     timestamp: str | None = None,
 ) -> dict[str, Any]:
-    return {
+    event = {
         "schema_version": SCHEMA_VERSION,
         "event_id": event_id or str(uuid.uuid4()),
         "event_type": event_type,
@@ -78,15 +84,45 @@ def build_event(
         "metadata": metadata or {},
         "annotations": {},
     }
+    if action:
+        event["action"] = action
+    if evidence_phase:
+        event["evidence_phase"] = evidence_phase
+    if resource_kind:
+        event["resource_kind"] = resource_kind
+    if resource is not None:
+        event["resource"] = resource
+    if resource_scope:
+        event["resource_scope"] = resource_scope
+    if operation_risk:
+        event["operation_risk"] = operation_risk
+    return event
 
 
-def pre_tool_use(source: str, session_id: str, tool_name: str, tool_input: dict[str, Any]) -> dict[str, Any]:
+def pre_tool_use(
+    source: str,
+    session_id: str,
+    tool_name: str,
+    tool_input: dict[str, Any],
+    *,
+    action: str = "",
+    resource_kind: str = "",
+    resource: str | dict[str, Any] | None = None,
+    resource_scope: str = "",
+    operation_risk: str = "",
+) -> dict[str, Any]:
     return build_event(
         "PreToolUse",
         source,
         session_id,
         tool_name=tool_name,
         tool_input=tool_input,
+        evidence_phase="pre_commit",
+        action=action,
+        resource_kind=resource_kind,
+        resource=resource,
+        resource_scope=resource_scope,
+        operation_risk=operation_risk,
         metadata=evidence_defaults(control_point="pre_action", enforcement_capable=True),
     )
 
@@ -97,6 +133,11 @@ def post_tool_use(
     tool_name: str,
     tool_input: dict[str, Any],
     *,
+    action: str = "",
+    resource_kind: str = "",
+    resource: str | dict[str, Any] | None = None,
+    resource_scope: str = "",
+    operation_risk: str = "",
     exit_code: int | None = None,
     duration_ms: int | None = None,
 ) -> dict[str, Any]:
@@ -105,7 +146,20 @@ def post_tool_use(
         metadata["exit_code"] = exit_code
     if duration_ms is not None:
         metadata["duration_ms"] = duration_ms
-    return build_event("PostToolUse", source, session_id, tool_name=tool_name, tool_input=tool_input, metadata=metadata)
+    return build_event(
+        "PostToolUse",
+        source,
+        session_id,
+        tool_name=tool_name,
+        tool_input=tool_input,
+        evidence_phase="post_hoc",
+        action=action,
+        resource_kind=resource_kind,
+        resource=resource,
+        resource_scope=resource_scope,
+        operation_risk=operation_risk,
+        metadata=metadata,
+    )
 
 
 def user_prompt_submit(source: str, session_id: str, prompt: str) -> dict[str, Any]:
