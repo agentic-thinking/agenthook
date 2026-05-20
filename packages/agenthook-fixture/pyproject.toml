@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agenthook-agenthook-fixture-test"
 version = "0.1.0"
-description = "Minimal AgentHook conformance flight-test fixture for compatible collectors."
+description = "Minimal AgentHook conformance fixture for compatible collectors."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
