@@ -76,6 +76,7 @@ Recommended actions:
 - `delete`
 - `execute`
 - `query`
+- `search`
 - `open`
 - `send`
 - `publish`

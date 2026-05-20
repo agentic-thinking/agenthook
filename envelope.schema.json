@@ -60,7 +60,7 @@
     "tool_input": {"type": "object", "additionalProperties": true},
     "action": {
       "type": "string",
-      "description": "Publisher-agnostic operation being attempted, e.g. read, write, edit, execute, query, send, open, publish."
+      "description": "Publisher-agnostic operation being attempted, e.g. read, write, edit, execute, query, search, send, open, publish."
     },
     "resource_kind": {
       "type": "string",

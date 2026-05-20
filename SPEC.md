@@ -20,6 +20,7 @@ The specification covers:
 9. Approval lifecycle metadata for autonomous-agent pause, approval, retry, and resume flows
 10. Hook fingerprint trust metadata for reviewed, modified, untrusted, and disabled hook entries
 11. Runtime contract files as a draft convention for agent-facing behavioural contracts
+12. Normalized action and resource fields for publisher-agnostic policy matching
 
 It does not cover:
 
@@ -67,7 +68,7 @@ Every event is a JSON object conforming to the following shape. Field requiremen
 | `evidence_phase` | string enum | no | Evidence class for this event: `pre_commit`, `post_hoc`, or `observational` |
 | `tool_name` | string | for `PreToolUse` and `PostToolUse` | Which tool the agent is calling |
 | `tool_input` | object | no | Tool-specific input. Publishers MUST NOT validate; subscribers decide what matters |
-| `action` | string | no | Publisher-agnostic operation being attempted, such as `read`, `write`, `edit`, `execute`, `query`, `send`, `open`, `search`, `approve`, or `handoff` |
+| `action` | string | no | Publisher-agnostic operation being attempted, such as `read`, `write`, `edit`, `execute`, `query`, `search`, `send`, `open`, `approve`, or `handoff` |
 | `resource_kind` | string | no | Publisher-agnostic resource class, such as `file`, `directory`, `shell`, `database`, `url`, `email`, `repository`, `package`, `container`, `kubernetes`, `cloud`, `model`, or `agent` |
 | `resource` | string or object | no | Canonical resource target for policy and audit. Use a string for simple targets such as paths, URLs, repository names, package names, database names, or email recipients; use an object when the target is naturally composite |
 | `resource_scope` | string | no | Scope of the target, such as `local`, `workspace`, `remote`, `public_web`, `internal_network`, `tenant`, `production`, or `unknown` |
@@ -119,6 +120,7 @@ Recommended action vocabulary is intentionally small and extensible:
 | `delete` | Remove data or resources |
 | `execute` | Run shell, script, code, workflow, or tool execution |
 | `query` | Query a database, API, index, or search backend |
+| `search` | Search files, indexes, web results, repositories, or knowledge bases |
 | `open` | Open a URL, application, file, or runtime resource |
 | `send` | Send email, message, notification, network request, or external transfer |
 | `publish` | Publish package, code, content, model output, or public artefact |
