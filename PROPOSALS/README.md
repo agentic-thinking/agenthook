@@ -73,3 +73,4 @@ These will be drafted by the editor team and circulated for Working Group review
 - [`AHP-009` — AgentHook Runtime Contract File](./AHP-009-runtime-contract-file.md)
 - [`AHP-010` — Goal Context and Terminal Semantics](./AHP-010-goal-context-terminal-semantics.md)
 - [`AHP-011` — Normalized Action and Resource Fields](./AHP-011-normalized-action-resource.md)
+- [`AHP-012` — Web Evidence and Browser Provenance](./AHP-012-web-evidence-browser-provenance.md)

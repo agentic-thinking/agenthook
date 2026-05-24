@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "event_id": "550e8400-e29b-41d4-a716-446655440012",
+  "event_type": "WebSearchResultsReturned",
+  "timestamp": "2026-05-24T09:00:00Z",
+  "source": "example-websearch-extension",
+  "session_id": "sess-web-123",
+  "correlation_id": "run-web-123",
+  "evidence_phase": "post_hoc",
+  "action": "search",
+  "resource_kind": "url",
+  "resource_scope": "public_web",
+  "metadata": {
+    "web": {
+      "query": "AgentHook web evidence standard",
+      "provider": "brave",
+      "search_id": "search_123",
+      "result_set_id": "rs_123",
+      "results": [
+        {
+          "result_id": "r1",
+          "rank": 1,
+          "url": "https://agenthook.org/",
+          "title": "AgentHook",
+          "snippet": "Runtime evidence standard for AI agents"
+        }
+      ]
+    }
+  }
+}

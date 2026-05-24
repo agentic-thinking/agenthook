@@ -21,6 +21,7 @@ The specification covers:
 10. Hook fingerprint trust metadata for reviewed, modified, untrusted, and disabled hook entries
 11. Runtime contract files as a draft convention for agent-facing behavioural contracts
 12. Normalized action and resource fields for publisher-agnostic policy matching
+13. Web evidence and browser provenance events for search, result selection, page reads, browser actions, and evidence use
 
 It does not cover:
 
@@ -274,7 +275,7 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
 
 ## 2. Canonical event types
 
-The specification defines ten canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`.
+The specification defines ten core canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`. Capability-specific extensions such as Web Evidence define additional canonical event names without making that capability mandatory for all publishers.
 
 | Event type | Phase | Description |
 |---|---|---|
@@ -292,6 +293,18 @@ The specification defines ten canonical event types. Implementations MAY emit ad
 Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.2 core ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
 
 Runtime contract events such as `RuntimeContractLoaded` are also outside the v0.2 core ten-event conformance set while [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md) is in Draft. Implementations MAY emit them as additional PascalCase event types to record that `AgentHook.md`, `agenthook.lock.json`, or equivalent contract material was discovered, loaded, hashed, and verified before the agent acted.
+
+Web evidence events are outside the v0.2 core ten-event conformance set while [`AHP-012`](./PROPOSALS/AHP-012-web-evidence-browser-provenance.md) is in Draft. A publisher is not required to ship native web search, URL fetch, or browser tools. However, if a publisher or extension emits web/search/browser activity and claims AgentHook Web Evidence conformance, it MUST use the following event names and `metadata.web` shape where the host runtime exposes the data. This applies equally to native runtime tools and extension-provided tools.
+
+| Event type | Phase | Description |
+|---|---|---|
+| `WebSearchRequested` | before | A publisher or extension is about to perform a web search query |
+| `WebSearchResultsReturned` | after | A search provider returned a result set for a query |
+| `WebResultSelected` | before | A result from a result set was selected for opening, fetching, browsing, or citation |
+| `WebPageRead` | after | A URL was fetched or rendered and page evidence was extracted |
+| `WebActionRequested` | before | A browser/page action such as click, fill, submit, download, or screenshot is about to run |
+| `WebActionCompleted` | after | A browser/page action completed and resulting page/action evidence is available |
+| `EvidenceUsedInOutput` | after | A model response or agent output declared which web evidence items influenced the output |
 
 Naming rules:
 
@@ -331,6 +344,44 @@ Naming rules:
 | `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 10. |
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
+
+### Web evidence events
+
+Web/search/browser publishers and extensions SHOULD place structured provenance under `metadata.web`. The field is optional for publishers that do not expose web/search/browser capability, but it is canonical for publishers that claim AgentHook Web Evidence conformance.
+
+| Key | Type | Purpose |
+|---|---|---|
+| `query` | string | Search query or equivalent retrieval request |
+| `provider` | string | Search, fetch, or browser provider, for example `brave`, `tavily`, `firecrawl`, `playwright`, or `runtime_native` |
+| `search_id` | string | Stable identifier linking a search request to its result set and selected result |
+| `result_set_id` | string | Stable identifier for one provider result set |
+| `results` | array | Ordered result objects with `result_id`, `rank`, `url`, `title`, `snippet`, and optional provider metadata |
+| `selected_result_id` | string | Identifier of the selected result from `results` |
+| `selected_rank` | integer | Rank of the selected result in the result set |
+| `url` | string | Requested URL before redirects |
+| `final_url` | string | Final URL after redirects or browser navigation |
+| `page_title` | string | Page title extracted from the fetched/rendered page |
+| `content_ref` | string | Reference to content stored outside the envelope |
+| `content_hash` | string | Digest of extracted content or page model, preferably `sha256:<hex>` |
+| `content_summary` | string | Optional short summary when full content is not embedded |
+| `evidence_id` | string | Stable identifier for a page, content chunk, screenshot, or extracted evidence record |
+| `evidence_ids` | array | Evidence identifiers used by a later output or action |
+| `parent_event_id` | string | Previous event in the web evidence chain |
+| `action_id` | string | Stable page/browser action identifier such as a link/button action ID |
+| `action` | string | Browser/page action such as `click`, `fill`, `submit`, `download`, `screenshot`, or `read` |
+| `actions` | array | Available page actions after a read or completed browser action |
+| `screenshot_ref` | string | Reference to a screenshot artefact stored outside the envelope |
+| `screenshot_hash` | string | Digest of the screenshot artefact |
+
+Recommended normalized fields:
+
+- `WebSearchRequested`: `action: search`, `resource_kind: url`, `resource_scope: public_web` unless the target is known to be internal.
+- `WebResultSelected`: `action: open`, `resource_kind: url`, `resource` set to the selected URL.
+- `WebPageRead`: `action: read`, `resource_kind: url`, `resource` set to the final URL.
+- `WebActionRequested`: use the normalized `action` closest to the effect (`open`, `write`, `send`, `execute`) and place browser-specific details in `metadata.web.action`.
+- `EvidenceUsedInOutput`: carry `metadata.web.evidence_ids` and link to the relevant `ModelResponse` or output event with `correlation_id` or `metadata.web.parent_event_id`.
+
+Publishers SHOULD NOT place unbounded page text, cookies, bearer tokens, credentials, or raw session state in `metadata.web`. Use `content_ref`, `content_hash`, `screenshot_ref`, and `screenshot_hash` for externally stored evidence artefacts.
 
 ### `SessionStart`, first `PreLLMCall`, or first `UserPromptSubmit`
 
@@ -391,6 +442,22 @@ The Bronze, Silver, and Gold tiers describe event coverage and transcript qualit
 - tool calls use stable `metadata.tool_call_id` pairing between pre, post, denial, and fail-mode events where the host runtime exposes a tool-call boundary
 
 The conformance rig SHOULD test the `admission-bound` profile separately from Bronze, Silver, and Gold so a publisher cannot satisfy an authorisation claim with post-hoc logging alone.
+
+### Web Evidence profile
+
+A publisher MAY additionally claim the `web-evidence` profile when it exposes native or extension-provided web search, URL fetch, browser navigation, page extraction, or web citation capability and emits the Web Evidence events from section 2.
+
+A `web-evidence` publisher SHOULD emit:
+
+- `WebSearchRequested` before search execution when a query is exposed
+- `WebSearchResultsReturned` after receiving provider results when result lists are exposed
+- `WebResultSelected` before opening, fetching, browsing, or citing a selected result
+- `WebPageRead` after fetching or rendering a page and extracting evidence
+- `WebActionRequested` before browser actions that can navigate, submit, download, mutate state, or reveal sensitive information
+- `WebActionCompleted` after those browser actions complete
+- `EvidenceUsedInOutput` when the runtime can identify which evidence items influenced an output
+
+If the host runtime does not expose a particular boundary, the publisher MUST document that limitation in its manifest rather than fabricate evidence. `WebResultSelected` and `WebActionRequested` are admission-capable events and SHOULD follow the admission-bound profile when the publisher claims pre-commit enforcement for web activity.
 
 ## 6. Runtime attestation
 

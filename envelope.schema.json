@@ -30,7 +30,14 @@
             "SessionStart",
             "SessionEnd",
             "AgentHandoff",
-            "ErrorOccurred"
+            "ErrorOccurred",
+            "WebSearchRequested",
+            "WebSearchResultsReturned",
+            "WebResultSelected",
+            "WebPageRead",
+            "WebActionRequested",
+            "WebActionCompleted",
+            "EvidenceUsedInOutput"
           ]
         },
         {
