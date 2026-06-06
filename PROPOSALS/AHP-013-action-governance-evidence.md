@@ -26,7 +26,7 @@ Model-facing and harness-facing tool systems are already fragmented and useful i
 - frameworks expose native tool abstractions;
 - OpenTelemetry can record tool execution spans and GenAI telemetry.
 
-None of those layers fully answers the governance evidence question for an enterprise or auditor: was this action in the pre-commit admission path, what policy decision applied, what risk class was assigned, whether an approval workflow paused execution, whether arguments were redacted or validated, whether retries were equivalent to a pending approval, and whether the executed action matched the requested action.
+None of those layers fully answers the governance evidence question for an enterprise or auditor: was this action in the pre-commit admission path, what policy decision applied, what risk class was assigned, whether an approval workflow paused execution, whether arguments were redacted or validated, whether retries were equivalent to a pending approval, and whether the executed action matched the requested action. Even when OpenTelemetry, MCP, and provider logs are all present, an auditor cannot reliably answer: "Was this specific tool call admitted by a policy gate before it executed, and did the executed action match the requested action?" AgentHook answers that with a single evidence chain.
 
 AgentHook is the right layer for this because it already defines runtime evidence envelopes, normalized action/resource fields, admission-bound semantics, approval lifecycle metadata, and web evidence. AHP-013 connects those pieces into a named profile.
 
@@ -56,7 +56,7 @@ For governed `PreToolUse` events, publishers claiming this profile MUST emit the
 - `metadata.tool_identity`;
 - `metadata.risk`.
 
-Publishers SHOULD prefer specific values over `unknown` when the host runtime exposes enough information to identify the operation safely. If a publisher repeatedly emits `unknown` for governed actions, it SHOULD document that limitation in its manifest.
+Publishers SHOULD prefer specific values over `unknown` when the host runtime exposes enough information to identify the operation safely. This profile intentionally tightens the general AHP-011 omission rule: for governed `PreToolUse` events claiming `action-governance`, an unknown value is itself governance evidence and MUST be explicit. If a publisher repeatedly emits `unknown` for governed actions, it SHOULD document that limitation in its manifest.
 
 For governed admission-bound `PreToolUse` events, publishers MUST also emit:
 
@@ -92,7 +92,7 @@ Fields:
 |---|---|---|
 | `canonical_name` | string | Stable action/tool identifier such as `web.search`, `email.send`, `shell.exec`, `browser.navigate`, `memory.write`, or `crm.update_record` |
 | `provider_name` | string | Native tool, function, command, or method name as exposed by the provider/runtime/framework |
-| `source` | string | Native surface, such as `openai_tools`, `anthropic_tool_use`, `gemini_function_declarations`, `mcp_tools_call`, `browser_action`, `shell_command`, or `native_runtime_tool` |
+| `source` | string | Canonical native surface for the tool identity, such as `openai_tools`, `anthropic_tool_use`, `gemini_function_declarations`, `mcp_tools_call`, `browser_action`, `shell_command`, or `native_runtime_tool` |
 | `schema_hash` | string | Optional digest of the tool/function/input schema, preferably `sha256:<hex>` |
 
 ### Provider translation
@@ -111,7 +111,7 @@ Fields:
 }
 ```
 
-Recommended `provider_surface` values include:
+`provider_translation.provider_surface` SHOULD match `tool_identity.source` when both fields describe the same native surface. It is repeated inside `provider_translation` so that the adapter/mapping block is self-contained; `tool_identity.source` remains the canonical origin field for subscribers that only need tool identity. Recommended `provider_surface` values include:
 
 - `openai_tools`
 - `anthropic_tool_use`
@@ -148,7 +148,7 @@ Recommended fields:
 
 | Field | Type | Purpose |
 |---|---|---|
-| `risk_class` | string | Classification such as `read_only`, `sensitive_read`, `external_side_effect`, `destructive_write`, `credential_access`, `publication`, or `runtime_change` |
+| `risk_class` | string | Open classification such as `read_only`, `sensitive_read`, `external_side_effect`, `destructive_write`, `credential_access`, `publication`, or `runtime_change`. It remains free-form in Draft so deployments can test local taxonomies before v1.0 |
 | `requires_human_approval` | boolean | Whether policy requires a human or workflow approval before execution |
 | `data_exfiltration_risk` | string | `none`, `low`, `moderate`, `high`, or `unknown` |
 | `writes_external_system` | boolean | Whether the action can mutate a system outside the local runtime/workspace |
@@ -229,11 +229,11 @@ Implementations MAY emit the following PascalCase events where the runtime expos
 | `ToolCallRedacted` | during | Tool input, result, or evidence was redacted before routing, storage, or model exposure |
 | `ToolCallRetried` | during | A tool call was retried, resumed, or linked to a prior pending call |
 
-These events are optional in v0.2 and do not affect Bronze, Silver, or Gold scoring while this Proposal remains Draft.
+These events are optional in v0.2 and do not affect Bronze, Silver, or Gold scoring while this Proposal remains Draft. `ToolCallValidated` SHOULD carry `evidence_phase: "pre_commit"` when validation represents a gating check before execution. `ToolCallRedacted` and `ToolCallRetried` SHOULD carry `evidence_phase: "observational"` unless the redaction or retry represents a runtime admission action, in which case `pre_commit` SHOULD be used.
 
 ### Profile schema
 
-The generic envelope schema intentionally allows arbitrary `metadata` so extension drafts do not break existing publishers. Implementations that claim `action-governance` SHOULD additionally validate governed examples and publisher output against [`action-governance-profile.schema.json`](../action-governance-profile.schema.json), which constrains the profile-specific `metadata.tool_identity`, `metadata.provider_translation`, `metadata.risk`, `metadata.validation`, `metadata.redaction`, `metadata.retry`, `metadata.execution`, and AHP-007-compatible `metadata.approval` fields.
+The generic envelope schema intentionally allows arbitrary `metadata` so extension drafts do not break existing publishers. Implementations that claim `action-governance` SHOULD additionally validate governed examples and publisher output against [`action-governance-profile.schema.json`](../action-governance-profile.schema.json), which constrains the profile-specific `metadata.tool_identity`, `metadata.provider_translation`, `metadata.risk`, `metadata.validation`, `metadata.redaction`, `metadata.retry`, `metadata.execution`, and AHP-007-compatible `metadata.approval` fields. Static JSON Schema validation cannot prove cross-event admission semantics such as deny/ask handling, approval linkage, or requested-versus-executed comparison; those checks belong in the conformance test rig.
 
 ## Backwards-compatibility impact
 
@@ -259,5 +259,6 @@ Tool arguments and results can contain personal data, confidential data, credent
 ## Open questions
 
 - Whether `action-governance` should become part of Gold or a future Platinum profile.
-- Whether `metadata.risk.risk_class` should become a controlled vocabulary in v1.0.
+- Whether `metadata.risk.risk_class` should become a controlled vocabulary in v1.0; it is intentionally free-form in this draft while `data_exfiltration_risk` uses a narrow severity enum.
 - Whether schema trust should be unified with AHP-008 hook fingerprint trust in a future proposal.
+- Whether `canonical_name` should remain a required dotted namespace. The draft requires dotted names such as `email.send` to keep canonical tool identity more specific than the flat normalized `action` vocabulary such as `send` or `read`.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agenthook.org/action-governance-profile.schema.json",
   "title": "AgentHook Action Governance Evidence Profile",
-  "description": "Profile schema for AgentHook v0.2 AHP-013 action-governance metadata. Validate with envelope.schema.json first, then this schema for governed PreToolUse/PostToolUse events.",
+  "description": "Profile schema for AgentHook v0.2 AHP-013 action-governance metadata. Validate with envelope.schema.json first, then this schema for governed PreToolUse/PostToolUse events. Static validation does not prove cross-event admission semantics; conformance tests verify those behaviours.",
   "type": "object",
   "required": [
     "event_type",
@@ -169,7 +169,8 @@
       "properties": {
         "canonical_name": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+          "description": "Dotted canonical tool name such as email.send or browser.navigate. This is intentionally more specific than the flat top-level action vocabulary."
         },
         "provider_name": {
           "type": "string",
@@ -177,7 +178,8 @@
         },
         "source": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "Canonical native surface for this tool identity. When provider_translation.provider_surface is also present and describes the same native surface, the two values should match."
         },
         "schema_hash": {
           "type": "string",
@@ -214,7 +216,8 @@
             "shell_command",
             "native_runtime_tool",
             "other"
-          ]
+          ],
+          "description": "Native surface targeted by the adapter or mapping layer. This should match metadata.tool_identity.source when both describe the same native surface; it is repeated here so provider_translation is self-contained."
         },
         "adapter_version": {
           "type": "string"
@@ -233,7 +236,8 @@
       ],
       "properties": {
         "risk_class": {
-          "type": "string"
+          "type": "string",
+          "description": "Open risk classification. Recommended values include read_only, sensitive_read, external_side_effect, destructive_write, credential_access, publication, and runtime_change."
         },
         "requires_human_approval": {
           "type": "boolean"

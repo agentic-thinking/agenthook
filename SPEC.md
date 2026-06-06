@@ -479,77 +479,9 @@ If the host runtime does not expose a particular boundary, the publisher MUST do
 
 A publisher MAY additionally claim the `action-governance` profile when it emits comparable governance evidence for agent actions and tool calls, regardless of whether the native action came from OpenAI tools, Anthropic `tool_use`, Gemini `functionDeclarations`, MCP `tools/call`, a framework-native tool, a browser action, a shell command, or a local runtime tool.
 
-The `action-governance` profile does not replace provider or protocol tool-calling formats. It standardizes the evidence around the action.
+The profile is defined by draft [`AHP-013`](./PROPOSALS/AHP-013-action-governance-evidence.md). In short, it tightens the general AHP-011 normalized-field guidance for governed actions: a governed `PreToolUse` event claiming this profile MUST carry `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk`, using `unknown` for any field value the publisher cannot safely identify. It also defines standard metadata for canonical tool identity, provider translation, risk, validation, redaction, retry/resume, approval linkage, execution evidence, and requested-versus-executed comparison.
 
-For governed `PreToolUse` events, a publisher claiming this profile MUST emit the following minimum evidence unless the host runtime cannot expose the boundary, in which case the limitation MUST be documented in the publisher manifest:
-
-- stable `metadata.tool_call_id`
-- normalized `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk`; use `unknown` for a field value that the publisher cannot safely identify
-- `metadata.tool_identity`
-- `metadata.risk`
-
-A publisher SHOULD prefer specific values over `unknown` when the host runtime exposes enough information to identify the operation safely. If the publisher repeatedly emits `unknown` for governed actions, it SHOULD document that limitation in its manifest.
-
-For governed admission-bound `PreToolUse` events, the publisher MUST also emit:
-
-- `evidence_phase: "pre_commit"`
-- `metadata.admission_verdict` once a policy, subscriber, bus, gateway, or runtime decision is reached
-
-For governed `PostToolUse` events, a publisher claiming this profile MUST emit:
-
-- the same `metadata.tool_call_id` as the admitted `PreToolUse`, or an explicit `metadata.retry.previous_tool_call_id`
-- `metadata.tool_input_executed`
-- `metadata.execution`
-
-Publishers SHOULD also emit `metadata.provider_translation` where the native provider, protocol, framework, browser, shell, or runtime source can be identified; `metadata.validation` where argument validation ran; `metadata.redaction` where arguments, outputs, or evidence were redacted; and `metadata.retry` where the event is part of a retry/resume sequence.
-
-Recommended `metadata.tool_identity` shape:
-
-```json
-{
-  "tool_identity": {
-    "canonical_name": "email.send",
-    "provider_name": "send_email",
-    "source": "openai_tools",
-    "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-  }
-}
-```
-
-Recommended `metadata.provider_translation` shape:
-
-```json
-{
-  "provider_translation": {
-    "model_facing_tool": "send_email",
-    "provider": "openai",
-    "provider_surface": "openai_tools",
-    "adapter_version": "openai-tools-v1",
-    "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
-  }
-}
-```
-
-Recommended `provider_surface` values include `openai_tools`, `anthropic_tool_use`, `gemini_function_declarations`, `mcp_tools_call`, `langchain_tool`, `llamaindex_tool`, `semantic_kernel_function`, `vercel_ai_sdk_tool`, `openai_agents_sdk_tool`, `browser_action`, `shell_command`, `native_runtime_tool`, and `other`.
-
-Recommended `metadata.risk` shape:
-
-```json
-{
-  "risk": {
-    "risk_class": "external_side_effect",
-    "requires_human_approval": true,
-    "data_exfiltration_risk": "moderate",
-    "writes_external_system": true,
-    "idempotent": false,
-    "contains_secret": false
-  }
-}
-```
-
-For publishers claiming both `admission-bound` and `action-governance`, a `deny` verdict MUST prevent execution, an `ask` verdict MUST stop equivalent retries while approval is pending, and any later execution SHOULD link back to the same `metadata.tool_call_id`, `metadata.approval.workflow_id`, `metadata.approval.decision_ref`, or explicit `metadata.retry.previous_tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD let auditors compare requested input with executed input.
-
-AgentHook events MAY be exported as OpenTelemetry spans, logs, or events, and SHOULD preserve trace context where available. OpenTelemetry records observability. AgentHook records governance evidence. Implementations that claim this profile SHOULD validate governed events against [`action-governance-profile.schema.json`](./action-governance-profile.schema.json) in addition to the generic envelope schema.
+Implementations that claim this profile SHOULD validate governed events against [`action-governance-profile.schema.json`](./action-governance-profile.schema.json) in addition to the generic envelope schema. Static schema validation does not prove all admission semantics; conformance tests are expected to verify cross-event and cross-field requirements such as deny/ask handling, approval linkage, and requested-versus-executed comparison.
 
 ## 6. Runtime attestation
 
