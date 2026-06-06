@@ -176,6 +176,23 @@ class AgentHookCliTests(unittest.TestCase):
         self.assertEqual(len(seen), 7)
         self.assertIn("ModelResponse", {event["event_type"] for event in seen})
 
+    def test_action_governance_examples_match_profile_schema(self) -> None:
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema is not installed")
+
+        repo_root = ROOT.parents[1]
+        envelope_schema = json.loads((repo_root / "envelope.schema.json").read_text())
+        profile_schema = json.loads((repo_root / "action-governance-profile.schema.json").read_text())
+        examples = sorted((repo_root / "examples").glob("*action-governance*.json"))
+        self.assertGreaterEqual(len(examples), 3)
+        for example in examples:
+            with self.subTest(example=example.name):
+                payload = json.loads(example.read_text())
+                jsonschema.validate(payload, envelope_schema)
+                jsonschema.validate(payload, profile_schema)
+
 
 if __name__ == "__main__":
     unittest.main()

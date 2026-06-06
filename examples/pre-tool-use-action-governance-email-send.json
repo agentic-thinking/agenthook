@@ -57,8 +57,15 @@
       "policy_id": "pol-external-send-v1",
       "subscriber": "example-policy-gate",
       "reason": "External email requires approval",
-      "workflow_ref": "approval-example-001",
       "decided_at": "2026-06-06T12:00:00Z"
+    },
+    "approval": {
+      "required": true,
+      "status": "pending",
+      "workflow_id": "approval-example-001",
+      "action_id": "call-email-001",
+      "requested_at": "2026-06-06T12:00:00Z",
+      "resume_policy": "publisher_waits"
     }
   }
 }

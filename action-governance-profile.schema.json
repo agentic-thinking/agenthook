@@ -1,0 +1,461 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agenthook.org/action-governance-profile.schema.json",
+  "title": "AgentHook Action Governance Evidence Profile",
+  "description": "Profile schema for AgentHook v0.2 AHP-013 action-governance metadata. Validate with envelope.schema.json first, then this schema for governed PreToolUse/PostToolUse events.",
+  "type": "object",
+  "required": [
+    "event_type",
+    "metadata"
+  ],
+  "properties": {
+    "event_type": {
+      "enum": [
+        "PreToolUse",
+        "PostToolUse",
+        "ToolCallValidated",
+        "ToolCallRedacted",
+        "ToolCallRetried"
+      ]
+    },
+    "evidence_phase": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "resource_kind": {
+      "type": "string"
+    },
+    "resource": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "resource_scope": {
+      "type": "string"
+    },
+    "operation_risk": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "tool_call_id"
+      ],
+      "properties": {
+        "tool_call_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tool_identity": {
+          "$ref": "#/$defs/tool_identity"
+        },
+        "provider_translation": {
+          "$ref": "#/$defs/provider_translation"
+        },
+        "risk": {
+          "$ref": "#/$defs/risk"
+        },
+        "validation": {
+          "$ref": "#/$defs/validation"
+        },
+        "redaction": {
+          "$ref": "#/$defs/redaction"
+        },
+        "retry": {
+          "$ref": "#/$defs/retry"
+        },
+        "execution": {
+          "$ref": "#/$defs/execution"
+        },
+        "approval": {
+          "$ref": "#/$defs/approval"
+        },
+        "admission_verdict": {
+          "$ref": "#/$defs/admission_verdict"
+        },
+        "tool_input_executed": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "PreToolUse"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "action",
+          "resource_kind",
+          "resource",
+          "resource_scope",
+          "operation_risk"
+        ],
+        "properties": {
+          "metadata": {
+            "required": [
+              "tool_call_id",
+              "tool_identity",
+              "risk"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "PostToolUse"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "metadata": {
+            "required": [
+              "tool_call_id",
+              "tool_input_executed",
+              "execution"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "PreToolUse"
+          },
+          "evidence_phase": {
+            "const": "pre_commit"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "metadata": {
+            "required": [
+              "admission_verdict"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "tool_identity": {
+      "type": "object",
+      "required": [
+        "canonical_name",
+        "provider_name",
+        "source"
+      ],
+      "properties": {
+        "canonical_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$"
+        },
+        "provider_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_hash": {
+          "type": "string",
+          "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "provider_translation": {
+      "type": "object",
+      "required": [
+        "provider_surface"
+      ],
+      "properties": {
+        "model_facing_tool": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string"
+        },
+        "provider_surface": {
+          "type": "string",
+          "enum": [
+            "openai_tools",
+            "anthropic_tool_use",
+            "gemini_function_declarations",
+            "mcp_tools_call",
+            "langchain_tool",
+            "llamaindex_tool",
+            "semantic_kernel_function",
+            "vercel_ai_sdk_tool",
+            "openai_agents_sdk_tool",
+            "browser_action",
+            "shell_command",
+            "native_runtime_tool",
+            "other"
+          ]
+        },
+        "adapter_version": {
+          "type": "string"
+        },
+        "schema_hash": {
+          "type": "string",
+          "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "risk_class"
+      ],
+      "properties": {
+        "risk_class": {
+          "type": "string"
+        },
+        "requires_human_approval": {
+          "type": "boolean"
+        },
+        "data_exfiltration_risk": {
+          "type": "string",
+          "enum": [
+            "none",
+            "low",
+            "moderate",
+            "high",
+            "unknown"
+          ]
+        },
+        "writes_external_system": {
+          "type": "boolean"
+        },
+        "idempotent": {
+          "type": "boolean"
+        },
+        "contains_secret": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "failed",
+            "skipped",
+            "unknown"
+          ]
+        },
+        "validator": {
+          "type": "string"
+        },
+        "schema_hash": {
+          "type": "string",
+          "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "redaction": {
+      "type": "object",
+      "required": [
+        "applied"
+      ],
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "policy_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "retry": {
+      "type": "object",
+      "properties": {
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "previous_tool_call_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "outcome"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "succeeded",
+            "failed",
+            "blocked",
+            "denied",
+            "cancelled",
+            "timed_out",
+            "unknown"
+          ]
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "result_ref": {
+          "type": "string"
+        },
+        "result_hash": {
+          "type": "string",
+          "pattern": "^sha256:[A-Fa-f0-9]{64}$"
+        },
+        "mutation_reason": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "approval": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "denied",
+            "expired",
+            "cancelled"
+          ]
+        },
+        "workflow_id": {
+          "type": "string"
+        },
+        "action_id": {
+          "type": "string"
+        },
+        "department": {
+          "type": "string"
+        },
+        "reviewer_ref": {
+          "type": "string"
+        },
+        "requested_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resume_policy": {
+          "type": "string",
+          "enum": [
+            "retry_same_event",
+            "retry_with_workflow_id",
+            "publisher_waits",
+            "manual_retry"
+          ]
+        },
+        "decision_ref": {
+          "type": "string"
+        },
+        "approval_url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "admission_verdict": {
+      "type": "object",
+      "required": [
+        "verdict"
+      ],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "deny",
+            "ask"
+          ]
+        },
+        "policy_id": {
+          "type": "string"
+        },
+        "subscriber": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "claim_reference": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

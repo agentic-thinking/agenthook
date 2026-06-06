@@ -47,27 +47,27 @@ The missing piece is a standard metadata shape for tool identity, provider trans
 
 Add an optional `action-governance` profile. A publisher MAY claim this profile when it emits the following evidence for governed `PreToolUse` and `PostToolUse` events where the runtime exposes the data.
 
-### Required profile evidence
+### Profile evidence requirements
 
-For governed `PreToolUse` events, publishers SHOULD emit:
+For governed `PreToolUse` events, publishers claiming this profile MUST emit the following minimum evidence unless the host runtime cannot expose the boundary, in which case the limitation MUST be documented in the publisher manifest:
 
-- `evidence_phase: "pre_commit"` when the action is admission-bound;
 - stable `metadata.tool_call_id`;
 - normalized top-level `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` when safely identifiable;
 - `metadata.tool_identity`;
-- `metadata.provider_translation` when the call originated from a provider, protocol, framework, browser, shell, or native runtime surface that can be identified;
-- `metadata.risk`;
-- `metadata.validation` when argument validation ran;
-- `metadata.redaction` when arguments, outputs, or evidence were redacted;
-- `metadata.admission_verdict` when a policy subscriber, bus, gateway, or runtime decision was reached.
+- `metadata.risk`.
 
-For governed `PostToolUse` events, publishers SHOULD emit:
+For governed admission-bound `PreToolUse` events, publishers MUST also emit:
 
-- the same `metadata.tool_call_id` as the admitted `PreToolUse`;
+- `evidence_phase: "pre_commit"`;
+- `metadata.admission_verdict` once a policy subscriber, bus, gateway, or runtime decision is reached.
+
+For governed `PostToolUse` events, publishers claiming this profile MUST emit:
+
+- the same `metadata.tool_call_id` as the admitted `PreToolUse`, or an explicit `metadata.retry.previous_tool_call_id`;
 - `metadata.tool_input_executed`;
-- `metadata.execution`;
-- `metadata.redaction` when result redaction occurred;
-- `metadata.retry` when the event is part of a retry/resume sequence.
+- `metadata.execution`.
+
+Publishers SHOULD also emit `metadata.provider_translation` when the call originated from a provider, protocol, framework, browser, shell, or native runtime surface that can be identified; `metadata.validation` when argument validation ran; `metadata.redaction` when arguments, outputs, or evidence were redacted; and `metadata.retry` when the event is part of a retry/resume sequence.
 
 ### Tool identity
 
@@ -214,7 +214,7 @@ For publishers claiming both `admission-bound` and `action-governance`:
 
 - if `metadata.admission_verdict.verdict` is `deny`, the action MUST NOT execute;
 - if the verdict is `ask`, equivalent retries MUST stop while approval is pending;
-- if the action executes after approval, `PostToolUse` MUST reference the same `metadata.tool_call_id` or an explicit `metadata.retry.previous_tool_call_id`, and MUST include the approval/workflow reference when available;
+- if the action executes after approval, `PostToolUse` MUST reference the same `metadata.tool_call_id` or an explicit `metadata.retry.previous_tool_call_id`, and MUST include `metadata.approval.workflow_id` and `metadata.approval.decision_ref` when available;
 - if the executed tool input differs from the admitted input, `PostToolUse.metadata.tool_input_executed` MUST record the executed input and the publisher SHOULD explain the mutation in `metadata.execution.mutation_reason` or equivalent metadata.
 
 ### Optional extension events
@@ -228,6 +228,10 @@ Implementations MAY emit the following PascalCase events where the runtime expos
 | `ToolCallRetried` | during | A tool call was retried, resumed, or linked to a prior pending call |
 
 These events are optional in v0.2 and do not affect Bronze, Silver, or Gold scoring while this Proposal remains Draft.
+
+### Profile schema
+
+The generic envelope schema intentionally allows arbitrary `metadata` so extension drafts do not break existing publishers. Implementations that claim `action-governance` SHOULD additionally validate governed examples and publisher output against [`action-governance-profile.schema.json`](../action-governance-profile.schema.json), which constrains the profile-specific `metadata.tool_identity`, `metadata.provider_translation`, `metadata.risk`, `metadata.validation`, `metadata.redaction`, `metadata.retry`, `metadata.execution`, and AHP-007-compatible `metadata.approval` fields.
 
 ## Backwards-compatibility impact
 
@@ -248,7 +252,7 @@ AgentHook events MAY be exported as OpenTelemetry spans, logs, or events, and SH
 
 Tool arguments and results can contain personal data, confidential data, credentials, session state, proprietary business data, or regulated content. Publishers MUST NOT place secrets, bearer tokens, raw credentials, session cookies, or unnecessary personal data in `metadata.tool_identity`, `metadata.provider_translation`, `metadata.risk`, `metadata.validation`, `metadata.redaction`, `metadata.retry`, or `metadata.execution`.
 
-Use stable identifiers, hashes, and evidence references where possible. Treat `contains_secret: false` as an evidence claim that may require independent verification by a subscriber, scanner, gateway, or policy engine.
+`metadata.tool_call_id` is an opaque stable string, not necessarily a UUID. Publishers SHOULD use non-secret provider or runtime call IDs where available, or generate a stable local identifier when the provider does not expose one. Use stable identifiers, hashes, and evidence references where possible. Treat `contains_secret: false` as an evidence claim that may require independent verification by a subscriber, scanner, gateway, or policy engine.
 
 ## Open questions
 

@@ -36,7 +36,8 @@
     "approval": {
       "status": "approved",
       "workflow_id": "approval-example-001",
-      "decision_id": "decision-example-001"
+      "decision_ref": "decision-example-001",
+      "required": true
     }
   }
 }

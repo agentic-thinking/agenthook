@@ -55,6 +55,7 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 - [`STANDARDS.md`](./STANDARDS.md): how AgentHook relates to governance, observability, attestation, provenance, and policy-engine standards
 - [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
 - [`publisher-manifest.schema.json`](./publisher-manifest.schema.json): draft schema for publisher identity, hook coverage, limitations, and verification status
+- [`action-governance-profile.schema.json`](./action-governance-profile.schema.json): draft profile schema for AHP-013 action governance evidence
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
 - [`MEMBERS.md`](./MEMBERS.md): Working Group, Maintainer, Implementer Track, and stewardship rosters

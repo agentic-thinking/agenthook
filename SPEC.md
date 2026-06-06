@@ -344,7 +344,7 @@ Naming rules:
 
 | Key | Type | Purpose |
 |---|---|---|
-| `tool_call_id` | string (UUID) | Stable identifier linking a `PreToolUse` event to the corresponding `PostToolUse`, denial, or error event |
+| `tool_call_id` | string | Stable opaque identifier linking a `PreToolUse` event to the corresponding `PostToolUse`, denial, retry, approval workflow, or error event. It MAY be a provider call ID, runtime call ID, UUID, or another stable non-secret identifier |
 | `admission_verdict` | object | Consolidated verdict for admission-bound `PreToolUse`: `verdict`, `reason`, optional `subscriber`, and optional `claim_reference` |
 | `estimated_usd` | number | Cost estimate (set by a budget subscriber, stamped onto the event) |
 | `tool_input_executed` | object | Tool input actually executed (`PostToolUse` only). SHOULD match the admitted `PreToolUse.tool_input` unless the publisher records an explicit mutation reason |
@@ -481,25 +481,25 @@ A publisher MAY additionally claim the `action-governance` profile when it emits
 
 The `action-governance` profile does not replace provider or protocol tool-calling formats. It standardizes the evidence around the action.
 
-For governed `PreToolUse` events, a publisher claiming this profile SHOULD emit:
+For governed `PreToolUse` events, a publisher claiming this profile MUST emit the following minimum evidence unless the host runtime cannot expose the boundary, in which case the limitation MUST be documented in the publisher manifest:
 
-- `evidence_phase: "pre_commit"` when the action is admission-bound
 - stable `metadata.tool_call_id`
 - normalized `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` where safely identifiable
 - `metadata.tool_identity`
-- `metadata.provider_translation` where the native source can be identified
 - `metadata.risk`
-- `metadata.validation` where validation ran
-- `metadata.redaction` where redaction occurred
-- `metadata.admission_verdict` where a policy, subscriber, bus, gateway, or runtime decision was reached
 
-For governed `PostToolUse` events, a publisher claiming this profile SHOULD emit:
+For governed admission-bound `PreToolUse` events, the publisher MUST also emit:
 
-- the same `metadata.tool_call_id` as the admitted `PreToolUse`, or an explicit retry/resume link
+- `evidence_phase: "pre_commit"`
+- `metadata.admission_verdict` once a policy, subscriber, bus, gateway, or runtime decision is reached
+
+For governed `PostToolUse` events, a publisher claiming this profile MUST emit:
+
+- the same `metadata.tool_call_id` as the admitted `PreToolUse`, or an explicit `metadata.retry.previous_tool_call_id`
 - `metadata.tool_input_executed`
 - `metadata.execution`
-- `metadata.redaction` where result redaction occurred
-- `metadata.retry` where the call is part of a retry/resume sequence
+
+Publishers SHOULD also emit `metadata.provider_translation` where the native provider, protocol, framework, browser, shell, or runtime source can be identified; `metadata.validation` where argument validation ran; `metadata.redaction` where arguments, outputs, or evidence were redacted; and `metadata.retry` where the event is part of a retry/resume sequence.
 
 Recommended `metadata.tool_identity` shape:
 
@@ -545,9 +545,9 @@ Recommended `metadata.risk` shape:
 }
 ```
 
-For publishers claiming both `admission-bound` and `action-governance`, a `deny` verdict MUST prevent execution, an `ask` verdict MUST stop equivalent retries while approval is pending, and any later execution SHOULD link back to the same `metadata.tool_call_id`, approval workflow reference, or explicit `metadata.retry.previous_tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD let auditors compare requested input with executed input.
+For publishers claiming both `admission-bound` and `action-governance`, a `deny` verdict MUST prevent execution, an `ask` verdict MUST stop equivalent retries while approval is pending, and any later execution SHOULD link back to the same `metadata.tool_call_id`, `metadata.approval.workflow_id`, `metadata.approval.decision_ref`, or explicit `metadata.retry.previous_tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD let auditors compare requested input with executed input.
 
-AgentHook events MAY be exported as OpenTelemetry spans, logs, or events, and SHOULD preserve trace context where available. OpenTelemetry records observability. AgentHook records governance evidence.
+AgentHook events MAY be exported as OpenTelemetry spans, logs, or events, and SHOULD preserve trace context where available. OpenTelemetry records observability. AgentHook records governance evidence. Implementations that claim this profile SHOULD validate governed events against [`action-governance-profile.schema.json`](./action-governance-profile.schema.json) in addition to the generic envelope schema.
 
 ## 6. Runtime attestation
 
@@ -756,7 +756,7 @@ Implementations MAY emit additional non-canonical PascalCase lifecycle events wh
 
 These events are optional in v0.2 and do not affect Bronze, Silver, or Gold conformance scoring until the Working Group accepts or rejects AHP-007.
 
-## 10. Examples
+## 11. Examples
 
 ### Minimal valid event
 
