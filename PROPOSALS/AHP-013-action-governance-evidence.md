@@ -52,9 +52,11 @@ Add an optional `action-governance` profile. A publisher MAY claim this profile 
 For governed `PreToolUse` events, publishers claiming this profile MUST emit the following minimum evidence unless the host runtime cannot expose the boundary, in which case the limitation MUST be documented in the publisher manifest:
 
 - stable `metadata.tool_call_id`;
-- normalized top-level `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` when safely identifiable;
+- normalized top-level `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk`; use `unknown` for a field value that the publisher cannot safely identify;
 - `metadata.tool_identity`;
 - `metadata.risk`.
+
+Publishers SHOULD prefer specific values over `unknown` when the host runtime exposes enough information to identify the operation safely. If a publisher repeatedly emits `unknown` for governed actions, it SHOULD document that limitation in its manifest.
 
 For governed admission-bound `PreToolUse` events, publishers MUST also emit:
 
