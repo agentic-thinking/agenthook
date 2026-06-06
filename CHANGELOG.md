@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+- Draft Action Governance Evidence proposal (`AHP-013`) defining the optional `action-governance` profile for canonical tool identity, provider translation, risk, validation, redaction, retry/resume, and execution evidence around governed actions.
+
 ## [0.2.0] - 2026-05-19
 
 ### Added

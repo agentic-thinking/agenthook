@@ -22,6 +22,7 @@ The specification covers:
 11. Runtime contract files as a draft convention for agent-facing behavioural contracts
 12. Normalized action and resource fields for publisher-agnostic policy matching
 13. Web evidence and browser provenance events for search, result selection, page reads, browser actions, and evidence use
+14. Action governance evidence for canonical tool identity, provider translation, risk, validation, redaction, retry, and execution evidence
 
 It does not cover:
 
@@ -306,6 +307,14 @@ Web evidence events are outside the v0.2 core ten-event conformance set while [`
 | `WebActionCompleted` | after | A browser/page action completed and resulting page/action evidence is available |
 | `EvidenceUsedInOutput` | after | A model response or agent output declared which web evidence items influenced the output |
 
+Action governance events are outside the v0.2 core ten-event conformance set while [`AHP-013`](./PROPOSALS/AHP-013-action-governance-evidence.md) is in Draft. Publishers SHOULD prefer `PreToolUse`, `PostToolUse`, `ErrorOccurred`, and approval lifecycle metadata for ordinary request, decision, execution, and failure evidence. Implementations MAY emit the following event names only when the runtime exposes a distinct validation, redaction, or retry boundary.
+
+| Event type | Phase | Description |
+|---|---|---|
+| `ToolCallValidated` | before | Tool arguments or provider schema were validated before execution |
+| `ToolCallRedacted` | during | Tool input, result, or evidence was redacted before routing, storage, or model exposure |
+| `ToolCallRetried` | during | A tool call was retried, resumed, or linked to a prior pending call |
+
 Naming rules:
 
 - PascalCase, no underscores or dots
@@ -342,6 +351,13 @@ Naming rules:
 | `duration_ms` | integer | Tool wall-clock duration (`PostToolUse` only) |
 | `exit_code` | integer | Tool exit code where applicable (`PostToolUse` only) |
 | `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 10. |
+| `tool_identity` | object | Optional canonical tool identity for the `action-governance` profile: `canonical_name`, native `provider_name`, native `source`, and optional `schema_hash` |
+| `provider_translation` | object | Optional mapping from a provider, protocol, framework, browser, shell, or native runtime surface into AgentHook action evidence |
+| `risk` | object | Optional action governance risk metadata: `risk_class`, approval need, data-exfiltration risk, external-write state, idempotency, and secret-detection state |
+| `validation` | object | Optional argument or schema validation evidence for governed tool calls |
+| `redaction` | object | Optional redaction evidence for tool inputs, outputs, or stored evidence references |
+| `retry` | object | Optional retry or resume linkage for governed tool calls |
+| `execution` | object | Optional post-execution evidence for `PostToolUse`: start/end time, outcome, duration, result reference, result hash, and mutation reason where applicable |
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
 
@@ -458,6 +474,80 @@ A `web-evidence` publisher SHOULD emit:
 - `EvidenceUsedInOutput` when the runtime can identify which evidence items influenced an output
 
 If the host runtime does not expose a particular boundary, the publisher MUST document that limitation in its manifest rather than fabricate evidence. `WebResultSelected` and `WebActionRequested` are admission-capable events and SHOULD follow the admission-bound profile when the publisher claims pre-commit enforcement for web activity.
+
+### Action Governance profile
+
+A publisher MAY additionally claim the `action-governance` profile when it emits comparable governance evidence for agent actions and tool calls, regardless of whether the native action came from OpenAI tools, Anthropic `tool_use`, Gemini `functionDeclarations`, MCP `tools/call`, a framework-native tool, a browser action, a shell command, or a local runtime tool.
+
+The `action-governance` profile does not replace provider or protocol tool-calling formats. It standardizes the evidence around the action.
+
+For governed `PreToolUse` events, a publisher claiming this profile SHOULD emit:
+
+- `evidence_phase: "pre_commit"` when the action is admission-bound
+- stable `metadata.tool_call_id`
+- normalized `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` where safely identifiable
+- `metadata.tool_identity`
+- `metadata.provider_translation` where the native source can be identified
+- `metadata.risk`
+- `metadata.validation` where validation ran
+- `metadata.redaction` where redaction occurred
+- `metadata.admission_verdict` where a policy, subscriber, bus, gateway, or runtime decision was reached
+
+For governed `PostToolUse` events, a publisher claiming this profile SHOULD emit:
+
+- the same `metadata.tool_call_id` as the admitted `PreToolUse`, or an explicit retry/resume link
+- `metadata.tool_input_executed`
+- `metadata.execution`
+- `metadata.redaction` where result redaction occurred
+- `metadata.retry` where the call is part of a retry/resume sequence
+
+Recommended `metadata.tool_identity` shape:
+
+```json
+{
+  "tool_identity": {
+    "canonical_name": "email.send",
+    "provider_name": "send_email",
+    "source": "openai_tools",
+    "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  }
+}
+```
+
+Recommended `metadata.provider_translation` shape:
+
+```json
+{
+  "provider_translation": {
+    "model_facing_tool": "send_email",
+    "provider": "openai",
+    "provider_surface": "openai_tools",
+    "adapter_version": "openai-tools-v1",
+    "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  }
+}
+```
+
+Recommended `provider_surface` values include `openai_tools`, `anthropic_tool_use`, `gemini_function_declarations`, `mcp_tools_call`, `langchain_tool`, `llamaindex_tool`, `semantic_kernel_function`, `vercel_ai_sdk_tool`, `openai_agents_sdk_tool`, `browser_action`, `shell_command`, `native_runtime_tool`, and `other`.
+
+Recommended `metadata.risk` shape:
+
+```json
+{
+  "risk": {
+    "risk_class": "external_side_effect",
+    "requires_human_approval": true,
+    "data_exfiltration_risk": "moderate",
+    "writes_external_system": true,
+    "idempotent": false,
+    "contains_secret": false
+  }
+}
+```
+
+For publishers claiming both `admission-bound` and `action-governance`, a `deny` verdict MUST prevent execution, an `ask` verdict MUST stop equivalent retries while approval is pending, and any later execution SHOULD link back to the same `metadata.tool_call_id`, approval workflow reference, or explicit `metadata.retry.previous_tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD let auditors compare requested input with executed input.
+
+AgentHook events MAY be exported as OpenTelemetry spans, logs, or events, and SHOULD preserve trace context where available. OpenTelemetry records observability. AgentHook records governance evidence.
 
 ## 6. Runtime attestation
 

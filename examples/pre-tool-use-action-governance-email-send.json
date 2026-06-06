@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "event_id": "11111111-1111-4111-8111-111111111111",
+  "event_type": "PreToolUse",
+  "timestamp": "2026-06-06T12:00:00Z",
+  "source": "example-runtime",
+  "session_id": "sess-example-action-governance",
+  "evidence_phase": "pre_commit",
+  "tool_name": "send_email",
+  "tool_input": {
+    "to": "recipient@example.invalid",
+    "subject": "Example notification",
+    "body_ref": "evidence://redacted-inputs/call-email-001-body"
+  },
+  "action": "send",
+  "resource_kind": "email",
+  "resource": "recipient@example.invalid",
+  "resource_scope": "remote",
+  "operation_risk": "external_transfer",
+  "metadata": {
+    "tool_call_id": "call-email-001",
+    "tool_identity": {
+      "canonical_name": "email.send",
+      "provider_name": "send_email",
+      "source": "openai_tools",
+      "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "provider_translation": {
+      "model_facing_tool": "send_email",
+      "provider": "openai",
+      "provider_surface": "openai_tools",
+      "adapter_version": "openai-tools-v1",
+      "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "risk": {
+      "risk_class": "external_side_effect",
+      "requires_human_approval": true,
+      "data_exfiltration_risk": "moderate",
+      "writes_external_system": true,
+      "idempotent": false,
+      "contains_secret": false
+    },
+    "validation": {
+      "status": "passed",
+      "validator": "publisher",
+      "schema_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+    },
+    "redaction": {
+      "applied": true,
+      "fields": [
+        "tool_input.body"
+      ],
+      "policy_id": "redact-message-body-v1"
+    },
+    "admission_verdict": {
+      "verdict": "ask",
+      "policy_id": "pol-external-send-v1",
+      "subscriber": "example-policy-gate",
+      "reason": "External email requires approval",
+      "workflow_ref": "approval-example-001",
+      "decided_at": "2026-06-06T12:00:00Z"
+    }
+  }
+}

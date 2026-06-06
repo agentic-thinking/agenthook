@@ -4,7 +4,12 @@
   "title": "AgentHook Event Envelope",
   "description": "JSON Schema for the AgentHook event envelope, SPEC v0.2 section 1.",
   "type": "object",
-  "required": ["event_id", "event_type", "timestamp", "source"],
+  "required": [
+    "event_id",
+    "event_type",
+    "timestamp",
+    "source"
+  ],
   "properties": {
     "schema_version": {
       "type": "integer",
@@ -37,7 +42,10 @@
             "WebPageRead",
             "WebActionRequested",
             "WebActionCompleted",
-            "EvidenceUsedInOutput"
+            "EvidenceUsedInOutput",
+            "ToolCallValidated",
+            "ToolCallRedacted",
+            "ToolCallRetried"
           ]
         },
         {
@@ -55,16 +63,32 @@
       "type": "string",
       "description": "Publisher family, e.g. claude-code, amp, hermes, cursor, cody, openai-agents-sdk."
     },
-    "agent_id": {"type": "string"},
-    "session_id": {"type": "string"},
-    "correlation_id": {"type": "string"},
+    "agent_id": {
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "correlation_id": {
+      "type": "string"
+    },
     "evidence_phase": {
       "type": "string",
-      "enum": ["pre_commit", "post_hoc", "observational"],
+      "enum": [
+        "pre_commit",
+        "post_hoc",
+        "observational"
+      ],
       "description": "Evidence class for this event."
     },
-    "tool_name": {"type": "string", "description": "Required for PreToolUse and PostToolUse."},
-    "tool_input": {"type": "object", "additionalProperties": true},
+    "tool_name": {
+      "type": "string",
+      "description": "Required for PreToolUse and PostToolUse."
+    },
+    "tool_input": {
+      "type": "object",
+      "additionalProperties": true
+    },
     "action": {
       "type": "string",
       "description": "Publisher-agnostic operation being attempted, e.g. read, write, edit, execute, query, search, send, open, publish."
@@ -76,8 +100,13 @@
     "resource": {
       "description": "Canonical resource target for policy and audit. Use a string for simple targets or an object for composite targets.",
       "oneOf": [
-        {"type": "string"},
-        {"type": "object", "additionalProperties": true}
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": true
+        }
       ]
     },
     "resource_scope": {
@@ -88,8 +117,14 @@
       "type": "string",
       "description": "Advisory risk label for the attempted operation, e.g. sensitive_read, destructive_write, external_transfer, publication."
     },
-    "metadata": {"type": "object", "additionalProperties": true},
-    "annotations": {"type": "object", "additionalProperties": true}
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "annotations": {
+      "type": "object",
+      "additionalProperties": true
+    }
   },
   "additionalProperties": false
 }

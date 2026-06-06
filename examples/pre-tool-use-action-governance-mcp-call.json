@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "event_id": "33333333-3333-4333-8333-333333333333",
+  "event_type": "PreToolUse",
+  "timestamp": "2026-06-06T12:10:00Z",
+  "source": "example-runtime",
+  "session_id": "sess-example-mcp-action",
+  "evidence_phase": "pre_commit",
+  "tool_name": "tools/call",
+  "tool_input": {
+    "name": "get_weather",
+    "arguments": {
+      "location": "Example City"
+    }
+  },
+  "action": "query",
+  "resource_kind": "url",
+  "resource": "mcp://example-weather-server/tools/get_weather",
+  "resource_scope": "remote",
+  "operation_risk": "read_only",
+  "metadata": {
+    "tool_call_id": "call-mcp-001",
+    "tool_identity": {
+      "canonical_name": "weather.lookup",
+      "provider_name": "get_weather",
+      "source": "mcp_tools_call",
+      "schema_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "provider_translation": {
+      "model_facing_tool": "get_weather",
+      "provider": "mcp",
+      "provider_surface": "mcp_tools_call",
+      "adapter_version": "mcp-tools-call-v1",
+      "schema_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "risk": {
+      "risk_class": "read_only",
+      "requires_human_approval": false,
+      "data_exfiltration_risk": "low",
+      "writes_external_system": false,
+      "idempotent": true,
+      "contains_secret": false
+    },
+    "validation": {
+      "status": "passed",
+      "validator": "mcp-client",
+      "schema_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+    },
+    "admission_verdict": {
+      "verdict": "allow",
+      "policy_id": "pol-readonly-remote-query-v1",
+      "subscriber": "example-policy-gate",
+      "reason": "Read-only remote query allowed",
+      "decided_at": "2026-06-06T12:10:00Z"
+    }
+  }
+}
