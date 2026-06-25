@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agenthook.org/approval-lifecycle.schema.json",
+  "title": "AgentHook Approval Lifecycle Metadata",
+  "description": "Schema for metadata.approval used by AHP-007 approval, retry, and resume flows.",
+  "type": "object",
+  "required": ["required", "status"],
+  "properties": {
+    "required": {
+      "type": "boolean",
+      "description": "Whether approval is required before execution."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "denied", "expired", "cancelled"],
+      "description": "Current approval lifecycle state."
+    },
+    "workflow_id": {
+      "type": "string",
+      "description": "Approval workflow identifier."
+    },
+    "action_id": {
+      "type": "string",
+      "description": "Action identifier within the approval workflow."
+    },
+    "department": {
+      "type": "string",
+      "description": "Routing department, role, or queue."
+    },
+    "reviewer_ref": {
+      "type": "string",
+      "description": "Pseudonymous reviewer, group, or queue reference."
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resume_policy": {
+      "type": "string",
+      "enum": ["retry_same_event", "retry_with_workflow_id", "publisher_waits", "manual_retry"]
+    },
+    "decision_ref": {
+      "type": "string",
+      "description": "Reference to the approval decision record."
+    },
+    "approval_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Operator-facing approval URL. Do not expose to the model unless explicitly configured."
+    }
+  },
+  "additionalProperties": true
+}

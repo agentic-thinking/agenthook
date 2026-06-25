@@ -1,6 +1,6 @@
 # AgentHook Specification
 
-**Version:** 0.1 (draft)
+**Version:** 0.2 (draft)
 **Status:** pre-1.0, expected to change
 **Editors:** Working Group (see [`MEMBERS.md`](./MEMBERS.md))
 **Licence:** Apache License 2.0
@@ -17,6 +17,12 @@ The specification covers:
 6. Runtime attestation as a non-breaking metadata extension
 7. Publisher manifests as an interim local-first identity, coverage, and verification layer
 8. Managed runtime identity and approval metadata for enterprise deployments
+9. Approval lifecycle metadata for autonomous-agent pause, approval, retry, and resume flows
+10. Hook fingerprint trust metadata for reviewed, modified, untrusted, and disabled hook entries
+11. Runtime contract files as a draft convention for agent-facing behavioural contracts
+12. Normalized action and resource fields for publisher-agnostic policy matching
+13. Web evidence and browser provenance events for search, result selection, page reads, browser actions, and evidence use
+14. Action governance evidence for canonical tool identity, provider translation, risk, validation, redaction, retry, and execution evidence
 
 It does not cover:
 
@@ -39,8 +45,13 @@ Every event is a JSON object conforming to the following shape. Field requiremen
   "session_id": "session-abc123",
   "correlation_id": "run-7f3b9a2e",
   "evidence_phase": "pre_commit",
-  "tool_name": "Bash",
-  "tool_input": { "command": "git push origin main" },
+  "tool_name": "read",
+  "tool_input": { "path": "/workspace/customer-risk.md" },
+  "action": "read",
+  "resource_kind": "file",
+  "resource": "/workspace/customer-risk.md",
+  "resource_scope": "local",
+  "operation_risk": "sensitive_read",
   "metadata": { "model": "claude-sonnet-4-6", "...": "..." },
   "annotations": { "subscribers": { } }
 }
@@ -59,6 +70,11 @@ Every event is a JSON object conforming to the following shape. Field requiremen
 | `evidence_phase` | string enum | no | Evidence class for this event: `pre_commit`, `post_hoc`, or `observational` |
 | `tool_name` | string | for `PreToolUse` and `PostToolUse` | Which tool the agent is calling |
 | `tool_input` | object | no | Tool-specific input. Publishers MUST NOT validate; subscribers decide what matters |
+| `action` | string | no | Publisher-agnostic operation being attempted, such as `read`, `write`, `edit`, `execute`, `query`, `search`, `send`, `open`, `approve`, or `handoff` |
+| `resource_kind` | string | no | Publisher-agnostic resource class, such as `file`, `directory`, `shell`, `database`, `url`, `email`, `repository`, `package`, `container`, `kubernetes`, `cloud`, `model`, or `agent` |
+| `resource` | string or object | no | Canonical resource target for policy and audit. Use a string for simple targets such as paths, URLs, repository names, package names, database names, or email recipients; use an object when the target is naturally composite |
+| `resource_scope` | string | no | Scope of the target, such as `local`, `workspace`, `remote`, `public_web`, `internal_network`, `tenant`, `production`, or `unknown` |
+| `operation_risk` | string | no | Advisory risk label for the attempted operation, such as `sensitive_read`, `write`, `destructive_write`, `external_transfer`, `credential_access`, `publication`, or `runtime_change` |
 | `metadata` | object | no | Hook-specific structured data (see section 3) |
 | `annotations` | object | no | Free-form subscriber/operator notes; publishers SHOULD NOT depend on these |
 
@@ -71,6 +87,51 @@ The bus (where one is present) MAY enrich an event with `agent_id` derived from 
 - `observational`: the event records runtime state or model output and is not represented as an authorisation receipt.
 
 Publishers MUST NOT represent `post_hoc` or `observational` events as equivalent to `pre_commit` authorisation evidence.
+
+### Normalized action and resource fields
+
+Agent runtimes expose different native tools for the same semantic operation. One runtime may read a file through a shell command such as `cat /workspace/customer-risk.md`; another may expose a native `read` tool with `{ "path": "/workspace/customer-risk.md" }`; a third may expose an MCP file resource. Policy subscribers MUST NOT be forced to treat all of those as a fake shell command.
+
+For `PreToolUse` and `PostToolUse`, publishers SHOULD preserve the native runtime surface in `tool_name` and `tool_input`, and SHOULD also emit normalized action/resource fields when the attempted operation can be identified. The normalized fields are publisher-agnostic policy hints. They describe what is being attempted, not which runtime produced it.
+
+Example:
+
+```json
+{
+  "event_type": "PreToolUse",
+  "source": "example-runtime",
+  "tool_name": "read",
+  "tool_input": { "path": "/workspace/customer-risk.md" },
+  "action": "read",
+  "resource_kind": "file",
+  "resource": "/workspace/customer-risk.md",
+  "resource_scope": "workspace",
+  "operation_risk": "sensitive_read"
+}
+```
+
+Subscribers SHOULD prefer normalized `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` for portable policy where present, and MAY fall back to runtime-specific `tool_name` and `tool_input` parsing when normalized fields are absent. Publishers SHOULD NOT alias or rewrite `tool_name` solely to satisfy a subscriber's legacy rule shape; if compatibility data is needed, it SHOULD be placed in `metadata` without hiding the native tool.
+
+Recommended action vocabulary is intentionally small and extensible:
+
+| Action | Meaning |
+|---|---|
+| `read` | Inspect or retrieve data without intended modification |
+| `write` | Create or replace data |
+| `edit` | Modify existing data |
+| `delete` | Remove data or resources |
+| `execute` | Run shell, script, code, workflow, or tool execution |
+| `query` | Query a database, API, index, or search backend |
+| `search` | Search files, indexes, web results, repositories, or knowledge bases |
+| `open` | Open a URL, application, file, or runtime resource |
+| `send` | Send email, message, notification, network request, or external transfer |
+| `publish` | Publish package, code, content, model output, or public artefact |
+| `approve` | Approve, deny, or record a human/automated decision |
+| `handoff` | Delegate work to another agent, runtime, or workflow |
+
+Recommended resource kinds are also extensible: `file`, `directory`, `shell`, `process`, `database`, `table`, `url`, `email`, `message`, `repository`, `package`, `container`, `kubernetes`, `cloud`, `model`, `agent`, `approval`, `ticket`, `secret`, and `unknown`.
+
+If a publisher cannot identify the operation safely, it SHOULD omit the normalized fields rather than guess. If a collector or bus enriches these fields after receipt, it SHOULD record that enrichment under `annotations` or `metadata` so downstream auditors can distinguish publisher-supplied evidence from derived evidence.
 
 ### Identity metadata
 
@@ -215,7 +276,7 @@ Where a bus verifies identity from authentication, it SHOULD keep publisher-supp
 
 ## 2. Canonical event types
 
-The specification defines ten canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`.
+The specification defines ten core canonical event types. Implementations MAY emit additional event types using PascalCase names; subscribers MAY ignore unknown types. The bus MUST NOT reject events solely on the basis of unrecognised `event_type`. Capability-specific extensions such as Web Evidence define additional canonical event names without making that capability mandatory for all publishers.
 
 | Event type | Phase | Description |
 |---|---|---|
@@ -229,6 +290,30 @@ The specification defines ten canonical event types. Implementations MAY emit ad
 | `SessionEnd` | state | An agent session ended |
 | `AgentHandoff` | during | The agent is delegating to another agent |
 | `ErrorOccurred` | after | An error was raised that did not terminate the session |
+
+Approval workflow events such as `ApprovalRequested`, `ApprovalGranted`, `ApprovalDenied`, `ToolUseResumed`, and `ToolUseBlocked` are not part of the v0.2 core ten-event conformance set. Implementations MAY emit them as additional PascalCase event types while [`AHP-007`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md) is in Draft. Subscribers that do not understand those events MUST be able to ignore them.
+
+Runtime contract events such as `RuntimeContractLoaded` are also outside the v0.2 core ten-event conformance set while [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md) is in Draft. Implementations MAY emit them as additional PascalCase event types to record that `AgentHook.md`, `agenthook.lock.json`, or equivalent contract material was discovered, loaded, hashed, and verified before the agent acted.
+
+Web evidence events are outside the v0.2 core ten-event conformance set while [`AHP-012`](./PROPOSALS/AHP-012-web-evidence-browser-provenance.md) is in Draft. A publisher is not required to ship native web search, URL fetch, or browser tools. However, if a publisher or extension emits web/search/browser activity and claims AgentHook Web Evidence conformance, it MUST use the following event names and `metadata.web` shape where the host runtime exposes the data. This applies equally to native runtime tools and extension-provided tools.
+
+| Event type | Phase | Description |
+|---|---|---|
+| `WebSearchRequested` | before | A publisher or extension is about to perform a web search query |
+| `WebSearchResultsReturned` | after | A search provider returned a result set for a query |
+| `WebResultSelected` | before | A result from a result set was selected for opening, fetching, browsing, or citation |
+| `WebPageRead` | after | A URL was fetched or rendered and page evidence was extracted |
+| `WebActionRequested` | before | A browser/page action such as click, fill, submit, download, or screenshot is about to run |
+| `WebActionCompleted` | after | A browser/page action completed and resulting page/action evidence is available |
+| `EvidenceUsedInOutput` | after | A model response or agent output declared which web evidence items influenced the output |
+
+Action governance events are outside the v0.2 core ten-event conformance set while [`AHP-013`](./PROPOSALS/AHP-013-action-governance-evidence.md) is in Draft. Publishers SHOULD prefer `PreToolUse`, `PostToolUse`, `ErrorOccurred`, and approval lifecycle metadata for ordinary request, decision, execution, and failure evidence. Implementations MAY emit the following event names only when the runtime exposes a distinct validation, redaction, or retry boundary.
+
+| Event type | Phase | Description |
+|---|---|---|
+| `ToolCallValidated` | before | Tool arguments or provider schema were validated before execution |
+| `ToolCallRedacted` | during | Tool input, result, or evidence was redacted before routing, storage, or model exposure |
+| `ToolCallRetried` | during | A tool call was retried, resumed, or linked to a prior pending call |
 
 Naming rules:
 
@@ -259,20 +344,67 @@ Naming rules:
 
 | Key | Type | Purpose |
 |---|---|---|
-| `tool_call_id` | string (UUID) | Stable identifier linking a `PreToolUse` event to the corresponding `PostToolUse`, denial, or error event |
+| `tool_call_id` | string | Stable opaque identifier linking a `PreToolUse` event to the corresponding `PostToolUse`, denial, retry, approval workflow, or error event. It MAY be a provider call ID, runtime call ID, UUID, or another stable non-secret identifier |
 | `admission_verdict` | object | Consolidated verdict for admission-bound `PreToolUse`: `verdict`, `reason`, optional `subscriber`, and optional `claim_reference` |
 | `estimated_usd` | number | Cost estimate (set by a budget subscriber, stamped onto the event) |
 | `tool_input_executed` | object | Tool input actually executed (`PostToolUse` only). SHOULD match the admitted `PreToolUse.tool_input` unless the publisher records an explicit mutation reason |
 | `duration_ms` | integer | Tool wall-clock duration (`PostToolUse` only) |
 | `exit_code` | integer | Tool exit code where applicable (`PostToolUse` only) |
+| `approval` | object | Optional approval lifecycle state for `ask`, retry, resume, deny, and timeout flows. See section 10. |
+| `tool_identity` | object | Optional canonical tool identity for the `action-governance` profile: `canonical_name`, native `provider_name`, native `source`, and optional `schema_hash` |
+| `provider_translation` | object | Optional mapping from a provider, protocol, framework, browser, shell, or native runtime surface into AgentHook action evidence |
+| `risk` | object | Optional action governance risk metadata: `risk_class`, approval need, data-exfiltration risk, external-write state, idempotency, and secret-detection state |
+| `validation` | object | Optional argument or schema validation evidence for governed tool calls |
+| `redaction` | object | Optional redaction evidence for tool inputs, outputs, or stored evidence references |
+| `retry` | object | Optional retry or resume linkage for governed tool calls |
+| `execution` | object | Optional post-execution evidence for `PostToolUse`: start/end time, outcome, duration, result reference, result hash, and mutation reason where applicable |
 
 Subscribers may add arbitrary keys, but using a name that collides with the canonical list will confuse other subscribers that trust the canonical meaning.
+
+### Web evidence events
+
+Web/search/browser publishers and extensions SHOULD place structured provenance under `metadata.web`. The field is optional for publishers that do not expose web/search/browser capability, but it is canonical for publishers that claim AgentHook Web Evidence conformance.
+
+| Key | Type | Purpose |
+|---|---|---|
+| `query` | string | Search query or equivalent retrieval request |
+| `provider` | string | Search, fetch, or browser provider, for example `brave`, `tavily`, `firecrawl`, `playwright`, or `runtime_native` |
+| `search_id` | string | Stable identifier linking a search request to its result set and selected result |
+| `result_set_id` | string | Stable identifier for one provider result set |
+| `results` | array | Ordered result objects with `result_id`, `rank`, `url`, `title`, `snippet`, and optional provider metadata |
+| `selected_result_id` | string | Identifier of the selected result from `results` |
+| `selected_rank` | integer | Rank of the selected result in the result set |
+| `url` | string | Requested URL before redirects |
+| `final_url` | string | Final URL after redirects or browser navigation |
+| `page_title` | string | Page title extracted from the fetched/rendered page |
+| `content_ref` | string | Reference to content stored outside the envelope |
+| `content_hash` | string | Digest of extracted content or page model, preferably `sha256:<hex>` |
+| `content_summary` | string | Optional short summary when full content is not embedded |
+| `evidence_id` | string | Stable identifier for a page, content chunk, screenshot, or extracted evidence record |
+| `evidence_ids` | array | Evidence identifiers used by a later output or action |
+| `parent_event_id` | string | Previous event in the web evidence chain |
+| `action_id` | string | Stable page/browser action identifier such as a link/button action ID |
+| `action` | string | Browser/page action such as `click`, `fill`, `submit`, `download`, `screenshot`, or `read` |
+| `actions` | array | Available page actions after a read or completed browser action |
+| `screenshot_ref` | string | Reference to a screenshot artefact stored outside the envelope |
+| `screenshot_hash` | string | Digest of the screenshot artefact |
+
+Recommended normalized fields:
+
+- `WebSearchRequested`: `action: search`, `resource_kind: url`, `resource_scope: public_web` unless the target is known to be internal.
+- `WebResultSelected`: `action: open`, `resource_kind: url`, `resource` set to the selected URL.
+- `WebPageRead`: `action: read`, `resource_kind: url`, `resource` set to the final URL.
+- `WebActionRequested`: use the normalized `action` closest to the effect (`open`, `write`, `send`, `execute`) and place browser-specific details in `metadata.web.action`.
+- `EvidenceUsedInOutput`: carry `metadata.web.evidence_ids` and link to the relevant `ModelResponse` or output event with `correlation_id` or `metadata.web.parent_event_id`.
+
+Publishers SHOULD NOT place unbounded page text, cookies, bearer tokens, credentials, or raw session state in `metadata.web`. Use `content_ref`, `content_hash`, `screenshot_ref`, and `screenshot_hash` for externally stored evidence artefacts.
 
 ### `SessionStart`, first `PreLLMCall`, or first `UserPromptSubmit`
 
 | Key | Type | Purpose |
 |---|---|---|
 | `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 6. |
+| `hook_trust` | object or array | Optional hook fingerprint trust state for active hook entries. See section 9. |
 
 ## 4. Hook delivery semantics
 
@@ -292,6 +424,14 @@ Implementations are expected to honour the following:
 - **Ordering**: events within a `session_id` MUST be delivered in publication order. Ordering across sessions is not guaranteed.
 
 Conforming publishers MUST document their fail-mode default and provide an operator-facing toggle.
+
+### Runtime contract file
+
+Agent-facing behavioural requirements MAY be declared in `AgentHook.md`, a draft human-readable runtime contract file proposed in [`AHP-009`](./PROPOSALS/AHP-009-runtime-contract-file.md). Publishers MAY also recognise `AGENTHOOK.md` as a compatibility alias.
+
+`AgentHook.md` is intended to describe how a participating runtime treats governance context, approval decisions, sensitive operational details, session identifiers, fail modes, and non-bypassable `ask` workflows. It is not a substitute for enforcement. Enforcement remains the responsibility of the runtime, publisher, bus, gateway, and policy subscribers.
+
+Publishers that load a runtime contract SHOULD record the loaded path, digest, required hooks, signature status, and fail mode in runtime attestation or in an optional `RuntimeContractLoaded` event.
 
 ## 5. Conformance levels
 
@@ -318,6 +458,30 @@ The Bronze, Silver, and Gold tiers describe event coverage and transcript qualit
 - tool calls use stable `metadata.tool_call_id` pairing between pre, post, denial, and fail-mode events where the host runtime exposes a tool-call boundary
 
 The conformance rig SHOULD test the `admission-bound` profile separately from Bronze, Silver, and Gold so a publisher cannot satisfy an authorisation claim with post-hoc logging alone.
+
+### Web Evidence profile
+
+A publisher MAY additionally claim the `web-evidence` profile when it exposes native or extension-provided web search, URL fetch, browser navigation, page extraction, or web citation capability and emits the Web Evidence events from section 2.
+
+A `web-evidence` publisher SHOULD emit:
+
+- `WebSearchRequested` before search execution when a query is exposed
+- `WebSearchResultsReturned` after receiving provider results when result lists are exposed
+- `WebResultSelected` before opening, fetching, browsing, or citing a selected result
+- `WebPageRead` after fetching or rendering a page and extracting evidence
+- `WebActionRequested` before browser actions that can navigate, submit, download, mutate state, or reveal sensitive information
+- `WebActionCompleted` after those browser actions complete
+- `EvidenceUsedInOutput` when the runtime can identify which evidence items influenced an output
+
+If the host runtime does not expose a particular boundary, the publisher MUST document that limitation in its manifest rather than fabricate evidence. `WebResultSelected` and `WebActionRequested` are admission-capable events and SHOULD follow the admission-bound profile when the publisher claims pre-commit enforcement for web activity.
+
+### Action Governance profile
+
+A publisher MAY additionally claim the `action-governance` profile when it emits comparable governance evidence for agent actions and tool calls, regardless of whether the native action came from OpenAI tools, Anthropic `tool_use`, Gemini `functionDeclarations`, MCP `tools/call`, a framework-native tool, a browser action, a shell command, or a local runtime tool.
+
+The profile is defined by draft [`AHP-013`](./PROPOSALS/AHP-013-action-governance-evidence.md). In short, it tightens the general AHP-011 normalized-field guidance for governed actions: a governed `PreToolUse` event claiming this profile MUST carry `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk`, using `unknown` for any field value the publisher cannot safely identify. It also defines standard metadata for canonical tool identity, provider translation, risk, validation, redaction, retry/resume, approval linkage, execution evidence, and requested-versus-executed comparison.
+
+Implementations that claim this profile SHOULD validate governed events against [`action-governance-profile.schema.json`](./action-governance-profile.schema.json) in addition to the generic envelope schema. Static schema validation does not prove all admission semantics; conformance tests are expected to verify cross-event and cross-field requirements such as deny/ask handling, approval linkage, and requested-versus-executed comparison.
 
 ## 6. Runtime attestation
 
@@ -408,7 +572,7 @@ The manifest is an interim local-first, machine-readable declaration of:
 
 The manifest is not an enforcement document. It MUST NOT contain secrets, bearer tokens, private endpoints, policy rules, or executable install logic. Subscribers MUST treat manifest claims as evidence about publisher coverage, not as authority to allow or deny an action.
 
-Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.1.
+Publishers SHOULD use reverse-DNS identifiers, for example `uk.agenticthinking.publisher.anthropic.claude-code`. A public registry MAY later index manifests by `publisher_id`, but conformance does not require central registration in v0.2.
 
 Collectors and buses MAY use publisher manifests to display onboarding state, supported hook coverage, limitations, and verification status. They MUST still verify live runtime events before reporting a publisher as active. Native AgentHook runtimes may expose equivalent manifest metadata through their own standard implementation once the draft reaches stable standard status.
 
@@ -419,7 +583,114 @@ Collectors and buses MAY use publisher manifests to display onboarding state, su
 
 The `schema_version` field allows implementations to negotiate envelope shape. Breaking changes increment `schema_version`. Subscribers MUST handle at least the version they were authored for; bus implementations MAY translate between versions.
 
-## 8. Examples
+## 9. Hook fingerprint trust metadata
+
+Agent runtimes may install hooks, commands, plugins, or adapters whose contents can change over time. A hook entry being present in runtime configuration is not the same as the hook being reviewed, trusted, and still matching the approved governance path.
+
+Publishers MAY include hook fingerprint trust metadata inside `metadata.runtime_attestation`, `metadata.managed_runtime`, or top-level event `metadata.hook_trust`. Publisher manifests MAY declare expected hook fingerprints. This convention is expanded in [`AHP-008`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md).
+
+Minimum shape:
+
+```json
+{
+  "metadata": {
+    "hook_trust": {
+      "hook_id": "uk.agenticthinking.publisher.openai.codex-cli.pretooluse",
+      "runtime": "codex-cli",
+      "hook_event": "PreToolUse",
+      "fingerprint": "sha256:6c8a...",
+      "fingerprint_alg": "sha256",
+      "trust_status": "trusted",
+      "source": "local_config",
+      "config_path": "~/.codex/hooks.json"
+    }
+  }
+}
+```
+
+Recommended trust states:
+
+- `trusted`: the observed fingerprint matches a reviewed hook entry.
+- `modified`: the hook exists, but the observed fingerprint differs from the trusted fingerprint.
+- `untrusted`: the hook exists, but no trusted fingerprint has been recorded.
+- `disabled`: the hook was expected but is not active.
+- `unknown`: the runtime or publisher could not determine trust state.
+- `not_supported`: the runtime does not expose hook fingerprint or trust data.
+
+Hook trust metadata is evidence, not authority. A publisher claiming `trust_status: "trusted"` MUST NOT be sufficient for an allow decision unless the responsible runtime, bus, gateway, registry, or policy subscriber verifies the claim. Regulated or high-assurance deployments SHOULD fail closed when a required admission-bound hook is `modified`, `untrusted`, `disabled`, or `unknown`.
+
+## 10. Approval lifecycle metadata
+
+Autonomous agents often need to pause a tool call until a human, workflow system, or policy owner approves or rejects the action. AgentHook models this without changing the envelope shape.
+
+When a synchronous subscriber returns `decision: "ask"` for a `PreToolUse` event, the response SHOULD include `metadata.approval`. Publishers and hook wrappers SHOULD treat that state as a pause instruction: do not execute the tool call until the referenced approval workflow is approved, denied, or timed out.
+
+Minimum response shape:
+
+```json
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "decision": "ask",
+  "reason": "Remote server access requires human approval",
+  "metadata": {
+    "approval": {
+      "required": true,
+      "status": "pending",
+      "workflow_id": "wf_123",
+      "action_id": "act_456",
+      "department": "management",
+      "reviewer_ref": "user_or_group_ref",
+      "requested_at": "2026-05-08T03:42:00Z",
+      "expires_at": "2026-05-08T03:57:00Z",
+      "resume_policy": "retry_same_event"
+    }
+  }
+}
+```
+
+| Field | Type | Purpose |
+|---|---|---|
+| `required` | boolean | Whether human or workflow approval is required before execution |
+| `status` | enum | `pending`, `approved`, `denied`, `expired`, or `cancelled` |
+| `workflow_id` | string | Stable workflow identifier owned by the approval system |
+| `action_id` | string | Stable action identifier within the workflow |
+| `department` | string | Optional routing department, role, or queue |
+| `reviewer_ref` | string | Optional pseudonymous reviewer, group, or queue reference. Avoid raw personal data where possible |
+| `requested_at` | string | ISO 8601 timestamp for the approval request |
+| `decided_at` | string | ISO 8601 timestamp for an approval or denial decision |
+| `expires_at` | string | ISO 8601 timeout for the pending request |
+| `resume_policy` | enum | `retry_same_event`, `retry_with_workflow_id`, `publisher_waits`, or `manual_retry` |
+| `decision_ref` | string | Optional reference to the approval decision record |
+| `approval_url` | string | Optional operator-facing approval link. Publishers MUST NOT expose this to the model unless explicitly configured to do so |
+
+Recommended status semantics:
+
+- `pending`: the tool call is paused and MUST NOT execute yet.
+- `approved`: the same tool call MAY execute if the publisher, bus, or policy subscriber verifies that the approved workflow/action matches the pending action.
+- `denied`, `expired`, or `cancelled`: the tool call MUST NOT execute.
+
+Recommended resume semantics:
+
+- `retry_same_event`: the publisher retries the same `event_id`; the approval system resolves the existing workflow by `event_id` and returns `allow` or `deny`.
+- `retry_with_workflow_id`: the publisher retries with `metadata.approval.workflow_id`; the approval system resolves by workflow reference.
+- `publisher_waits`: the publisher or hook wrapper waits/polls until the approval system returns a terminal state, then resumes or blocks without requiring model-level retry.
+- `manual_retry`: the user or operator must retry the action manually after approval.
+
+Approval metadata is evidence, not authority. A publisher-supplied `metadata.approval.status: "approved"` MUST NOT be sufficient to allow execution unless verified by the responsible subscriber, bus, gateway, or approval system.
+
+Implementations MAY emit additional non-canonical PascalCase lifecycle events while AHP-007 is in Draft:
+
+| Event type | Phase | Description |
+|---|---|---|
+| `ApprovalRequested` | during | A human or workflow approval was requested for a pending action |
+| `ApprovalGranted` | during | The pending action was approved |
+| `ApprovalDenied` | during | The pending action was rejected |
+| `ToolUseResumed` | after | A paused tool call resumed after approval |
+| `ToolUseBlocked` | after | A paused tool call was denied, expired, cancelled, or timed out |
+
+These events are optional in v0.2 and do not affect Bronze, Silver, or Gold conformance scoring until the Working Group accepts or rejects AHP-007.
+
+## 11. Examples
 
 ### Minimal valid event
 

@@ -28,14 +28,26 @@ def load_schema(path: str | Path | None = None) -> dict[str, Any]:
         "properties": {
             "schema_version": {"type": "integer"},
             "event_id": {"type": "string", "format": "uuid"},
-            "event_type": {"type": "string", "enum": sorted(CANONICAL_EVENT_TYPES)},
+            "event_type": {
+                "type": "string",
+                "anyOf": [
+                    {"enum": sorted(CANONICAL_EVENT_TYPES)},
+                    {"pattern": "^[A-Z][A-Za-z0-9]*$"},
+                ],
+            },
             "timestamp": {"type": "string", "format": "date-time"},
             "source": {"type": "string"},
             "agent_id": {"type": "string"},
             "session_id": {"type": "string"},
             "correlation_id": {"type": "string"},
+            "evidence_phase": {"type": "string"},
             "tool_name": {"type": "string"},
             "tool_input": {"type": "object"},
+            "action": {"type": "string"},
+            "resource_kind": {"type": "string"},
+            "resource": {"oneOf": [{"type": "string"}, {"type": "object"}]},
+            "resource_scope": {"type": "string"},
+            "operation_risk": {"type": "string"},
             "metadata": {"type": "object"},
             "annotations": {"type": "object"},
         },
@@ -52,8 +64,8 @@ def _fallback_validate(event: dict[str, Any]) -> list[str]:
         uuid.UUID(str(event.get("event_id", "")))
     except Exception:
         errors.append("event_id must be a UUID")
-    if event.get("event_type") not in CANONICAL_EVENT_TYPES:
-        errors.append(f"event_type must be canonical: {event.get('event_type')!r}")
+    if not re.match(r"^[A-Z][A-Za-z0-9]*$", str(event.get("event_type", ""))):
+        errors.append(f"event_type must be canonical or PascalCase: {event.get('event_type')!r}")
     ts = str(event.get("timestamp", ""))
     try:
         datetime.fromisoformat(ts.replace("Z", "+00:00"))
@@ -63,6 +75,13 @@ def _fallback_validate(event: dict[str, Any]) -> list[str]:
         errors.append("source must be a non-empty string")
     if "tool_input" in event and not isinstance(event["tool_input"], dict):
         errors.append("tool_input must be an object")
+    if "evidence_phase" in event and event["evidence_phase"] not in {"pre_commit", "post_hoc", "observational"}:
+        errors.append("evidence_phase must be pre_commit, post_hoc, or observational")
+    for field in ("action", "resource_kind", "resource_scope", "operation_risk"):
+        if field in event and not isinstance(event[field], str):
+            errors.append(f"{field} must be a string")
+    if "resource" in event and not isinstance(event["resource"], (str, dict)):
+        errors.append("resource must be a string or object")
     if "metadata" in event and not isinstance(event["metadata"], dict):
         errors.append("metadata must be an object")
     if "annotations" in event and not isinstance(event["annotations"], dict):
@@ -76,8 +95,14 @@ def _fallback_validate(event: dict[str, Any]) -> list[str]:
         "agent_id",
         "session_id",
         "correlation_id",
+        "evidence_phase",
         "tool_name",
         "tool_input",
+        "action",
+        "resource_kind",
+        "resource",
+        "resource_scope",
+        "operation_risk",
         "metadata",
         "annotations",
     }
@@ -92,7 +117,7 @@ def validate_event(event: dict[str, Any], schema_path: str | Path | None = None)
     """Return validation errors. Empty list means valid.
 
     Uses jsonschema if installed, otherwise a strict fallback validator covering
-    the AgentHook v0.1 required fields.
+    the AgentHook v0.2 required fields.
     """
     try:
         import jsonschema  # type: ignore

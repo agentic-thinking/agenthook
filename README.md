@@ -1,6 +1,6 @@
 # AgentHook
 
-> **DRAFT — pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
+> **DRAFT — v0.2, pre-v1.0.** Not yet endorsed by any external runtime. Subject to incompatible changes during the `0.x` series. See [`CHANGELOG.md`](./CHANGELOG.md).
 
 An open technical specification for AI-agent runtime evidence: structured, subscriber-addressable envelopes for lifecycle events, tool calls, human approvals, policy denials, model interactions, and runtime control attestations.
 
@@ -20,6 +20,16 @@ AI governance frameworks increasingly depend on runtime evidence, not just polic
 Agent runtimes today expose hooks inconsistently. Coverage varies between vendors and over time. There is no shared definition of what a complete hook surface looks like, what events must be emitted, or what metadata each event must carry. Without a standard, every enterprise rebuilds the same compliance plumbing per vendor, and every regulator has to evaluate every implementation from scratch.
 
 AgentHook defines the agent-specific runtime evidence layer that can support governance, audit, policy, memory, observability, and incident-review workflows.
+
+AgentHook records human approvals and workflow outcomes as runtime evidence. It does not define local bypass mechanisms; approval semantics belong to the runtime, publisher, and policy subscribers that emit or consume the evidence.
+
+AgentHook also normalizes the action and resource being attempted. Publishers should keep their native `tool_name` and `tool_input`, but add publisher-agnostic fields such as `action`, `resource_kind`, `resource`, `resource_scope`, and `operation_risk` for `PreToolUse` and `PostToolUse`. This lets policy subscribers govern "read this sensitive file", "write to this folder", "query this database", or "send to this URL" without depending on whether the runtime used Bash, a native file tool, an MCP tool, a browser tool, or another publisher-specific surface.
+
+AgentHook also defines a Web Evidence extension for search, browser, and URL-fetch provenance. A runtime is not required to ship web tools, but if a native tool or extension emits web/search/browser activity and claims AgentHook Web Evidence conformance, it should use the standard event model for search requests, returned results, selected results, page reads, browser actions, and evidence used in output.
+
+AgentHook also defines an Action Governance Evidence profile. Tool calling remains provider-specific: OpenAI tools, Anthropic `tool_use`, Gemini `functionDeclarations`, MCP `tools/call`, browser actions, shell commands, and framework-native tools all keep their native formats. AgentHook standardizes the governance evidence around those actions: canonical action identity, provider translation, risk, validation, redaction, admission decisions, retry/resume state, and requested-versus-executed comparison.
+
+AgentHook also needs to distinguish an installed hook from a trusted hook. Draft [`AHP-008`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md) defines hook fingerprint trust metadata so runtimes, publishers, buses, and enterprise registries can report whether an active hook entry is trusted, modified, untrusted, disabled, unknown, or unsupported.
 
 ## What it is, and is not
 
@@ -45,21 +55,26 @@ Reference implementations may demonstrate AgentHook, but they are not the standa
 - [`STANDARDS.md`](./STANDARDS.md): how AgentHook relates to governance, observability, attestation, provenance, and policy-engine standards
 - [`runtime-attestation.schema.json`](./runtime-attestation.schema.json): draft schema for publisher-supplied runtime attestation
 - [`publisher-manifest.schema.json`](./publisher-manifest.schema.json): draft schema for publisher identity, hook coverage, limitations, and verification status
+- [`action-governance-profile.schema.json`](./action-governance-profile.schema.json): draft profile schema for AHP-013 action governance evidence
 - [`GOVERNANCE.md`](./GOVERNANCE.md): how the working group operates, perpetual licensing commitments
 - [`CHARTER.md`](./CHARTER.md): formal stewardship terms, signed
-- [`MEMBERS.md`](./MEMBERS.md): founding members and invitee status
-- [`CONFORMANCE/`](./CONFORMANCE/): test rig (forthcoming)
+- [`MEMBERS.md`](./MEMBERS.md): Working Group, Maintainer, Implementer Track, and stewardship rosters
+- [`CONFORMANCE/`](./CONFORMANCE/): conformance notes and flight-test fixtures
 - [`PROPOSALS/`](./PROPOSALS/): change process (AHP, "AgentHook Proposal")
+- [`examples/AgentHook.md`](./examples/AgentHook.md): draft human-readable runtime contract file
+- [`examples/agenthook.lock.json`](./examples/agenthook.lock.json): draft machine-readable runtime contract lock file
 
 ## Status
 
-Pre-v1.0 public draft. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
+v0.2 public draft, pre-v1.0. Working group composition in progress. Substantive change proposals are made through the Proposals process. Runtime Attestation is a draft non-breaking extension proposed in [`PROPOSALS/AHP-004-runtime-attestation.md`](./PROPOSALS/AHP-004-runtime-attestation.md). Governance Context Metadata is a draft advisory metadata convention proposed in [`PROPOSALS/AHP-005-governance-context-metadata.md`](./PROPOSALS/AHP-005-governance-context-metadata.md). Managed Runtime Identity and Device Registry is a draft enterprise metadata convention proposed in [`PROPOSALS/AHP-006-managed-runtime-identity.md`](./PROPOSALS/AHP-006-managed-runtime-identity.md). Approval Lifecycle Metadata is a draft convention proposed in [`PROPOSALS/AHP-007-approval-lifecycle-metadata.md`](./PROPOSALS/AHP-007-approval-lifecycle-metadata.md). Hook Fingerprint Trust is a draft convention proposed in [`PROPOSALS/AHP-008-hook-fingerprint-trust.md`](./PROPOSALS/AHP-008-hook-fingerprint-trust.md). AgentHook Runtime Contract Files are a draft convention proposed in [`PROPOSALS/AHP-009-runtime-contract-file.md`](./PROPOSALS/AHP-009-runtime-contract-file.md). Goal Context and Terminal Semantics is a draft convention proposed in [`PROPOSALS/AHP-010-goal-context-terminal-semantics.md`](./PROPOSALS/AHP-010-goal-context-terminal-semantics.md). Normalized Action and Resource Fields is a draft convention proposed in [`PROPOSALS/AHP-011-normalized-action-resource.md`](./PROPOSALS/AHP-011-normalized-action-resource.md). Web Evidence and Browser Provenance is a draft convention proposed in [`PROPOSALS/AHP-012-web-evidence-browser-provenance.md`](./PROPOSALS/AHP-012-web-evidence-browser-provenance.md). Action Governance Evidence is a draft profile proposed in [`PROPOSALS/AHP-013-action-governance-evidence.md`](./PROPOSALS/AHP-013-action-governance-evidence.md). Publisher manifests are an interim local-first convention for declaring publisher identity and lifecycle coverage ahead of native AgentHook adoption.
 
 ## Quick start
 
 Validate any event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for the shape of a fully-populated event. A minimal publisher + subscriber sketch lives in [`SPEC.md`](./SPEC.md) Appendix A.
 
 While the draft matures into a standard, publisher authors SHOULD ship an `agenthook.publisher.json` file at the repository root. Validate it against [`publisher-manifest.schema.json`](./publisher-manifest.schema.json) and see [`examples/publisher-manifest.codex.json`](./examples/publisher-manifest.codex.json) or [`examples/publisher-manifest.claude-code.json`](./examples/publisher-manifest.claude-code.json) for current public publisher examples.
+
+Publishers that need agent-facing runtime behaviour SHOULD also support `AgentHook.md` as the preferred human-readable runtime contract file, with `AGENTHOOK.md` as a compatibility alias. See [`PROPOSALS/AHP-009-runtime-contract-file.md`](./PROPOSALS/AHP-009-runtime-contract-file.md).
 
 ### Implementation kit
 

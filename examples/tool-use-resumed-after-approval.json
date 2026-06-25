@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "event_id": "f5e53b8a-6d8e-4d52-8762-fb1b23cc6b90",
+  "event_type": "ToolUseResumed",
+  "timestamp": "2026-05-08T03:46:00Z",
+  "source": "hookbus-agent",
+  "session_id": "sess-approval-demo",
+  "correlation_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "deploy --target production --dry-run"
+  },
+  "metadata": {
+    "approval": {
+      "required": true,
+      "status": "approved",
+      "workflow_id": "wf_6f07566b",
+      "action_id": "act_32",
+      "department": "management",
+      "reviewer_ref": "group:management",
+      "decided_at": "2026-05-08T03:45:30Z",
+      "resume_policy": "retry_same_event",
+      "decision_ref": "approval_audit_14"
+    }
+  }
+}

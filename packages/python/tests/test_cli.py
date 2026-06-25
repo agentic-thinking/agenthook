@@ -49,12 +49,12 @@ class AgentHookCliTests(unittest.TestCase):
 
     def test_validate_rejects_bad_uuid_and_event(self) -> None:
         with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
-            json.dump({"event_id": "bad", "event_type": "Bad", "timestamp": "x", "source": ""}, fh)
+            json.dump({"event_id": "bad", "event_type": "bad_event", "timestamp": "x", "source": ""}, fh)
             path = fh.name
         try:
             proc = run_cli("validate", path)
             self.assertNotEqual(proc.returncode, 0)
-            self.assertIn("Bad", proc.stderr)
+            self.assertIn("bad_event", proc.stderr)
             self.assertIn("uuid", proc.stderr.lower())
         finally:
             Path(path).unlink(missing_ok=True)
@@ -175,6 +175,23 @@ class AgentHookCliTests(unittest.TestCase):
         self.assertIn("Result: pass", proc.stdout)
         self.assertEqual(len(seen), 7)
         self.assertIn("ModelResponse", {event["event_type"] for event in seen})
+
+    def test_action_governance_examples_match_profile_schema(self) -> None:
+        try:
+            import jsonschema
+        except ImportError:
+            self.skipTest("jsonschema is not installed")
+
+        repo_root = ROOT.parents[1]
+        envelope_schema = json.loads((repo_root / "envelope.schema.json").read_text())
+        profile_schema = json.loads((repo_root / "action-governance-profile.schema.json").read_text())
+        examples = sorted((repo_root / "examples").glob("*action-governance*.json"))
+        self.assertGreaterEqual(len(examples), 3)
+        for example in examples:
+            with self.subTest(example=example.name):
+                payload = json.loads(example.read_text())
+                jsonschema.validate(payload, envelope_schema)
+                jsonschema.validate(payload, profile_schema)
 
 
 if __name__ == "__main__":
