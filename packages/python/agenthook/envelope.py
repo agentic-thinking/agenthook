@@ -32,7 +32,7 @@ def evidence_defaults(**overrides: Any) -> dict[str, Any]:
     """
     data: dict[str, Any] = {
         "response_available": False,
-        "response_text": None,
+        "response_content": None,
         "response_chars": 0,
         "reasoning_available": False,
         "reasoning_content": None,
@@ -163,12 +163,13 @@ def post_tool_use(
 
 
 def user_prompt_submit(source: str, session_id: str, prompt: str) -> dict[str, Any]:
+    metadata = evidence_defaults(control_point="pre_action")
+    metadata.update(prompt=prompt, prompt_chars=len(prompt))
     return build_event(
         "UserPromptSubmit",
         source,
         session_id,
-        tool_input={"prompt": prompt},
-        metadata=evidence_defaults(control_point="pre_action"),
+        metadata=metadata,
     )
 
 
@@ -176,15 +177,15 @@ def model_response(
     source: str,
     session_id: str,
     *,
-    response_text: str | None = None,
+    response_content: str | None = None,
     reasoning_content: str | None = None,
     provider: str = "",
     model: str = "",
     transcript_path: str | None = None,
 ) -> dict[str, Any]:
     metadata = evidence_defaults(provider=provider, model=model)
-    if response_text:
-        metadata.update(response_available=True, response_text=response_text, response_chars=len(response_text))
+    if response_content:
+        metadata.update(response_available=True, response_content=response_content, response_chars=len(response_content))
     if reasoning_content:
         metadata.update(
             reasoning_available=True,

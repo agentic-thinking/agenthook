@@ -8,6 +8,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 - Draft Action Governance Evidence proposal (`AHP-013`) defining the optional `action-governance` profile for canonical tool identity, provider translation, risk, validation, redaction, retry/resume, and execution evidence around governed actions, plus a draft `action-governance-profile.schema.json` for profile-level validation.
+- Normative synchronous subscriber response format in `SPEC.md` section 4: a JSON object carrying `decision` (`allow`, `deny`, or `ask`), optional `event_id` echo, `reason`, and `metadata`, with fail-mode handling for missing or unrecognised decisions.
+- Canonical `UserPromptSubmit` metadata keys `prompt` and `prompt_chars`; prompt text must not be placed in `tool_input`.
+- Canonical `ModelResponse` metadata keys: `response_content`, `response_chars`, reasoning keys, and explicit availability/unavailability fields (`response_available`, `reasoning_available`, `reasoning_unavailable_reason`, `reasoning_redacted`, `reasoning_signature_present`, `transcript_available`, `transcript_path`).
+- Canonical `spec_version` metadata key on `SessionStart` (or the first emitted event) declaring the implemented specification revision, distinct from the wire-format `schema_version`.
+- Pairing-under-failure rule in `SPEC.md` section 4: exactly one terminal event per admitted `Pre*` boundary — a matching `Post*` when the operation returned or threw, `ErrorOccurred` when it never completed.
+- Duplicate `event_id` semantics: redelivery (identical payload) is idempotent; identifier collisions (different payload) are a publisher violation subscribers flag and may reject.
+- CI workflow validating every published example against its schema and running the Python implementation kit tests on each push and pull request.
+
+### Changed
+- `envelope.schema.json` now enforces that `tool_name` is present on `PreToolUse` and `PostToolUse` events, matching the requirement already stated in `SPEC.md` section 1.
+- The Appendix A subscriber sketch returns `decision`, matching the normative response format (previously `verdict`).
+- The Python implementation kit places prompts in `metadata.prompt` (previously `tool_input.prompt`) and uses `response_content` (previously `response_text`) for `ModelResponse`, aligning the kit and the Claude Code mapping with the canonical metadata keys.
+- The Bronze conformance scenario draft now records all five previously blocking spec gaps as resolved and encodes the mandated failure paths in its assertions.
 
 ## [0.2.0] - 2026-05-19
 

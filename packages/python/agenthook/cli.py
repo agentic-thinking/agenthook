@@ -44,7 +44,7 @@ def cmd_emit(args) -> int:
         event = model_response(
             args.source,
             args.session,
-            response_text=args.response,
+            response_content=args.response,
             reasoning_content=args.reasoning,
             provider=args.provider,
             model=args.model,
@@ -151,7 +151,7 @@ def cmd_test(args) -> int:
     events = [
         user_prompt_submit(args.source, "conformance", "hello"),
         pre_tool_use(args.source, "conformance", "Bash", {"command": "pwd"}),
-        model_response(args.source, "conformance", response_text="hello", provider=args.provider),
+        model_response(args.source, "conformance", response_content="hello", provider=args.provider),
     ]
     failed = 0
     for event in events:
@@ -202,7 +202,7 @@ def cmd_test_collector(args) -> int:
         ("UserPromptSubmit", user_prompt_submit(source, session, "hello from AgentHook conformance")),
         ("PreToolUse", pre_tool_use(source, session, "Bash", {"command": "pwd"})),
         ("PostToolUse", build_event("PostToolUse", source, session, tool_name="Bash", tool_input={"command": "pwd"}, metadata=evidence_defaults(control_point="post_action", exit_code=0, duration_ms=1))),
-        ("ModelResponse", model_response(source, session, response_text="collector conformance response", provider="agenthook")),
+        ("ModelResponse", model_response(source, session, response_content="collector conformance response", provider="agenthook")),
         ("SessionStart", build_event("SessionStart", source, session, metadata=evidence_defaults())),
         ("SessionEnd", build_event("SessionEnd", source, session, metadata=evidence_defaults())),
         ("ErrorOccurred", build_event("ErrorOccurred", source, session, metadata=evidence_defaults(error_type="ConformanceSmoke", error_message="synthetic"))),
