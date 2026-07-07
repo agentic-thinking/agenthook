@@ -7,11 +7,11 @@ Status: AgentHook-compatible through publisher shim.
 | `UserPromptSubmit` | `UserPromptSubmit` | Captures submitted prompt. |
 | `PreToolUse` | `PreToolUse` | Sync, enforcement-capable. |
 | `PostToolUse` | `PostToolUse` | Captures tool result where exposed. |
-| `Stop.last_assistant_message` | `ModelResponse.metadata.response_text` | Captures final assistant response. |
+| `Stop.last_assistant_message` | `ModelResponse.metadata.response_content` | Captures final assistant response. |
 | `Stop.transcript_path` | `ModelResponse.metadata.transcript_path` | Transcript reference, if exposed. |
 | transcript `thinking` blocks | `ModelResponse.metadata.reasoning_content` | Best-effort only. Claude Code may expose signed/redacted/empty thinking. |
 
-Canonical unavailability fields must still be emitted:
+Canonical unavailability fields (see `SPEC.md` section 3, `ModelResponse`) must still be emitted:
 
 ```json
 {
