@@ -325,6 +325,15 @@ Naming rules:
 
 `metadata` is free-form, but the following keys are canonical per event type. Publishers SHOULD emit them when the data is available; subscribers MAY rely on them.
 
+### `UserPromptSubmit`
+
+| Key | Type | Purpose |
+|---|---|---|
+| `prompt` | string | The submitted prompt text. Truncation to 64 KiB is RECOMMENDED for envelope compactness |
+| `prompt_chars` | integer | Length of the original prompt before any truncation |
+
+`metadata.prompt` is the canonical location for submitted prompt text. Publishers MUST NOT place prompt text in `tool_input`; that field is reserved for tool calls.
+
 ### `PostLLMCall`
 
 | Key | Type | Purpose |
@@ -339,6 +348,26 @@ Naming rules:
 | `response_content` | string | Reply text delivered to the caller. Truncation to ~4 KiB is RECOMMENDED |
 
 `reasoning_content` together with `response_content` constitutes a *transcript-grade* record of the LLM exchange when the runtime or provider exposes reasoning. By "transcript-grade" we mean a record sufficient to reconstruct, after the fact, what the model was asked, what reasoning was available to the runtime, and what it returned, without consulting the original session transport. This can support record-keeping obligations such as EU AI Act Article 12 for high-risk AI systems, but AgentHook does not itself certify legal compliance.
+
+### `ModelResponse`
+
+`ModelResponse` records the finished response as delivered to the user or caller. Runtimes differ in what they expose, so publishers SHOULD emit explicit availability state rather than silently omitting keys.
+
+| Key | Type | Purpose |
+|---|---|---|
+| `response_content` | string or null | Final response text delivered to the user or caller. Truncation to 64 KiB is RECOMMENDED |
+| `response_chars` | integer | Length of the original response before any truncation |
+| `response_available` | boolean | Whether the runtime exposed the final response text |
+| `reasoning_content` | string or null | Reasoning text where exposed, as for `PostLLMCall` |
+| `reasoning_chars` | integer | Length of the original reasoning before any truncation |
+| `reasoning_available` | boolean | Whether the runtime exposed reasoning for this response |
+| `reasoning_unavailable_reason` | string | Why reasoning is absent, for example `not_exposed_by_runtime`, `redacted_by_provider`, or `disabled` |
+| `reasoning_redacted` | boolean | Whether the exposed reasoning was redacted by the provider or runtime |
+| `reasoning_signature_present` | boolean | Whether the runtime exposed a provider signature over the reasoning |
+| `transcript_available` | boolean | Whether a runtime transcript artefact is available |
+| `transcript_path` | string or null | Reference to the runtime transcript artefact stored outside the envelope |
+
+The availability and unavailability keys (`response_available`, `reasoning_available`, `reasoning_unavailable_reason`, `reasoning_redacted`, `reasoning_signature_present`, `transcript_available`) are canonical: mappings and publisher shims SHOULD emit them so subscribers can distinguish "the runtime does not expose this" from "the publisher failed to capture it".
 
 ### `PreToolUse` and `PostToolUse`
 
@@ -405,6 +434,7 @@ Publishers SHOULD NOT place unbounded page text, cookies, bearer tokens, credent
 |---|---|---|
 | `runtime_attestation` | object | Publisher-supplied declaration of the runtime controls active for this session. See section 6. |
 | `hook_trust` | object or array | Optional hook fingerprint trust state for active hook entries. See section 9. |
+| `spec_version` | string | The AgentHook specification revision the publisher implements, for example `"0.2"`. Distinct from the envelope `schema_version`, which is the wire-format version. Conformance tooling uses this declaration to select the applicable rule set. |
 
 ## 4. Hook delivery semantics
 
@@ -418,12 +448,43 @@ Implementations are expected to honour the following:
 - **Observational Pre\* telemetry**: a publisher MAY emit a `Pre*` event for visibility without blocking. Such events MUST set `evidence_phase` to `observational` or omit `evidence_phase`, and MUST NOT be represented as runtime authorisation evidence.
 - **Admission-bound Pre\* evidence**: a publisher that claims an action was authorised, denied, or escalated by runtime controls MUST emit the relevant `Pre*` event before the action commits, set `evidence_phase` to `pre_commit`, block until a subscriber verdict or documented fail-mode is reached, and record the consolidated result in `metadata.admission_verdict`. If the action has already committed and the event is emitted afterwards, the event is `post_hoc` or `observational` telemetry and MUST NOT be represented as equivalent to pre-commit authorisation evidence.
 - **Tool-call pairing**: admission-bound `PreToolUse` events SHOULD carry `metadata.tool_call_id`. The corresponding `PostToolUse`, denial, or fail-mode `ErrorOccurred` event SHOULD carry the same `tool_call_id`. `PostToolUse.metadata.tool_input_executed` SHOULD record the input actually executed so subscribers can detect time-of-check/time-of-use drift.
+- **Pairing under failure**: every admitted `Pre*` event MUST be terminated by exactly one of two paths. If the operation returned or threw at the tool or LLM boundary, the publisher MUST emit the matching `Post*` event (carrying error indicators such as `exit_code` or `metadata.error_type` where the operation threw). If the operation never completed (timeout, crash, abort, kill), the publisher MUST emit `ErrorOccurred` with the same `session_id` and, for tool calls, the same `metadata.tool_call_id`, and MUST NOT emit a `Post*` event for that boundary. Failures that occur after completion (for example, the publisher fails to parse a successful tool result) are additional `ErrorOccurred` events following the `Post*` event; they do not replace it.
 - **Post\* events MUST NOT block** the publisher beyond enqueueing for delivery. Any subscriber processing time happens out of the publisher's hot path.
 - **Observer events** (`ModelResponse`, `SessionEnd`, `ErrorOccurred`) follow the same MUST NOT-block rule as Post\*.
-- **Idempotency**: re-delivery of the same `event_id` MUST be safe. Subscribers MUST handle duplicates by no-op or merge, never by double-counting.
+- **Idempotency**: re-delivery of the same `event_id` MUST be safe. Subscribers MUST handle duplicates by no-op or merge, never by double-counting. Redelivery means the same `event_id` with a materially identical payload. Two distinct events sharing an `event_id` (same identifier, materially different payload) are a specification violation by the publisher: subscribers MUST NOT double-count, SHOULD record the collision as a violation, and MAY reject the later event.
 - **Ordering**: events within a `session_id` MUST be delivered in publication order. Ordering across sessions is not guaranteed.
 
 Conforming publishers MUST document their fail-mode default and provide an operator-facing toggle.
+
+### Synchronous subscriber response
+
+A synchronous subscriber replying to a `Pre*` event MUST return a JSON object of the following shape. This is the normative response wire format; publishers, buses, and hook wrappers parse it to decide whether the action proceeds.
+
+```json
+{
+  "event_id": "550e8400-e29b-41d4-a716-446655440000",
+  "decision": "allow",
+  "reason": "optional human-readable explanation",
+  "metadata": { }
+}
+```
+
+| Field | Type | Required | Purpose |
+|---|---|---|---|
+| `decision` | string enum | yes | `allow`, `deny`, or `ask` |
+| `event_id` | string | no | SHOULD echo the `event_id` of the event being answered |
+| `reason` | string | no | SHOULD accompany `deny` and `ask` decisions |
+| `metadata` | object | no | Structured response data, for example `metadata.approval` for `ask` flows (see section 10) |
+
+Semantics:
+
+- `allow`: the action MAY proceed.
+- `deny`: the action MUST NOT proceed.
+- `ask`: the action is paused pending approval; see section 10 for `metadata.approval` and resume semantics.
+- A response that is missing `decision`, carries an unrecognised `decision` value, or cannot be parsed MUST be treated according to the publisher's documented fail-mode, exactly as a subscriber timeout would be.
+- Responses to `Post*` and observer events are acknowledgements only; any `decision` they carry MUST be ignored.
+
+Where multiple synchronous subscribers respond to the same event, the publisher or bus consolidates their decisions according to its documented consolidation strategy (for example `deny_wins`, see section 6) and records the consolidated outcome in `metadata.admission_verdict`, whose `verdict` field holds the final consolidated decision.
 
 ### Runtime contract file
 
@@ -772,8 +833,8 @@ async def receive(event: dict):
     if event["event_type"] == "PreToolUse":
         cmd = event.get("tool_input", {}).get("command", "")
         if "git push" in cmd:
-            return {"verdict": "deny", "reason": "review push first"}
-    return {"verdict": "allow"}
+            return {"decision": "deny", "reason": "review push first"}
+    return {"decision": "allow"}
 ```
 
 Validate every event against [`envelope.schema.json`](./envelope.schema.json). See [`sample-event.json`](./sample-event.json) for a fully-populated PostLLMCall.

@@ -126,5 +126,20 @@
       "additionalProperties": true
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["PreToolUse", "PostToolUse"]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "required": ["tool_name"]
+      }
+    }
+  ],
   "additionalProperties": false
 }
