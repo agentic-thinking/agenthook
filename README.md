@@ -10,7 +10,7 @@ The first reference implementation is [HookBus](https://github.com/agentic-think
 
 The draft technical paper is published on Zenodo:
 
-> Ruocco, P. (2026). *AgentHook: A Runtime Evidence Standard for Auditable AI Agent Governance*. Zenodo. https://doi.org/10.5281/zenodo.19853376
+> Ruocco, P. (2026). *AgentHook: A Runtime Evidence Standard for Auditable AI Agent Governance*. Zenodo. https://doi.org/10.5281/zenodo.20112580 (first version: https://doi.org/10.5281/zenodo.19853376)
 
 
 ## Why it exists
