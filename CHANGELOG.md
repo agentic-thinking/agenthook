@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
+- AgentHook conformance fixture (`packages/agenthook-fixture`): a minimal reference publisher whose `preflight` command emits all ten canonical lifecycle events through any compatible collector, using the canonical `metadata.prompt`, `response_content` and `spec_version` keys, with tests that validate every emitted event against `envelope.schema.json`. An optional reasoning smoke test runs against an OpenAI-compatible endpoint.
 - Draft Action Governance Evidence proposal (`AHP-013`) defining the optional `action-governance` profile for canonical tool identity, provider translation, risk, validation, redaction, retry/resume, and execution evidence around governed actions, plus a draft `action-governance-profile.schema.json` for profile-level validation.
 - Normative synchronous subscriber response format in `SPEC.md` section 4: a JSON object carrying `decision` (`allow`, `deny`, or `ask`), optional `event_id` echo, `reason`, and `metadata`, with fail-mode handling for missing or unrecognised decisions.
 - Canonical `UserPromptSubmit` metadata keys `prompt` and `prompt_chars`; prompt text must not be placed in `tool_input`.
